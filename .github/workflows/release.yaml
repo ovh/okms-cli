@@ -1,0 +1,69 @@
+name: release
+
+on:
+  push:
+    # run only against tags
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: write
+  # issues: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yaml
+    secrets: inherit
+
+  docker-build:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: ./.github/actions/setup-build-env
+      - uses: ko-build/setup-ko@v0.7
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: KO_DOCKER_REPO=ghcr.io/ovh/okms-cli ko build --tags ${{ github.ref_name }},latest --push --bare --platform=linux/arm64,linux/amd64 ./cmd/okms
+  
+  goreleaser:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - run: git fetch --force --tags
+      - uses: ./.github/actions/setup-build-env
+      - name: Install Syft
+        run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+      # More assembly might be required: Docker logins, GPG, etc. It all depends
+      # on your needs.
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: .github/release-note.toml
+          args: --verbose --current
+        env:
+          OUTPUT: tmp.CHANGELOG.md
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          # either 'goreleaser' (default) or 'goreleaser-pro':
+          distribution: goreleaser
+          version: latest
+          args: release --clean --release-notes tmp.CHANGELOG.md -f .github/goreleaser.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    

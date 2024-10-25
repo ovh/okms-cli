@@ -1,0 +1,19 @@
+version: 1
+profile: default # Name of the active profile
+profiles:
+  default:
+    http:
+      endpoint: https://myserver.acme.com
+      ca: /path/to/public-ca.crt # Optional if the CA is in system store
+      auth:
+        type: mtls # Optional, defaults to "mtls"
+        cert: /path/to/domain/cert.pem
+        key: /path/to/domain/key.pem
+  my-profile:
+    http:
+      endpoint: https://my-profile.kms.ovh:8080
+      ca: /path/to/public-ca.crt
+      auth:
+        type: yubikey # Requires yubikey built-in support
+        slot: 9a # Optional, defaults to authentication slot (0x9A). See https://developers.yubico.com/PIV/Introduction/Certificate_slots.html
+        cert: /path/to/domain/cert.pem # Optional if the certificate is registered in the yubikey

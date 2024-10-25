@@ -1,0 +1,60 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: build
+
+on:
+  push:
+    branches: ["main"]
+  workflow_call: {}
+
+jobs:
+  cli:
+    strategy:
+      matrix:
+        tags: ["", "yubikey"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-build-env
+
+      - name: Install libpcsclite-dev
+        run: sudo apt update && sudo apt install libpcsclite-dev
+        if: contains(matrix.tags, 'yubikey')
+
+      - run: go mod tidy
+
+      - name: Generate
+        run: go generate ./...
+
+      - name: Build CLI
+        run: go build -v -ldflags="-s -w" -tags="${{ matrix.tags }}" -o . ./cmd/...
+
+      - name: Unit Test CLI
+        run: go test -v -tags="${{ matrix.tags }}" ./...
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli
+          path: |
+            ./okms
+          retention-days: 5
+        if: matrix.tags == ''
+  
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-build-env
+
+      - run: go mod tidy
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          # Require: The version of golangci-lint to use.
+          # When `install-mode` is `binary` (default) the value can be v1.2 or v1.2.3 or `latest` to use the latest version.
+          # When `install-mode` is `goinstall` the value can be v1.2.3, `latest`, or the hash of a commit.
+          version: v1.60
+          # args: --build-tags yubikey
+          args: --timeout 3m

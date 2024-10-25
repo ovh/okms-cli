@@ -1,0 +1,31 @@
+name: pull-request
+
+on:
+  pull_request:
+    branches: ["main"]
+
+# jobs:
+#   check-commit:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses:  ytanikin/PRConventionalCommits@1.1.0
+#         with:
+#           add_label: 'false'
+#           task_types: '["feat","fix","doc","perf","refactor","style","test","chore","ci","build","revert"]'
+          
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Lint commits
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
+        uses: ./.github/actions/lint-commit
+
+  build:
+    needs:
+      - commitlint
+    uses: ./.github/workflows/build.yaml
+    secrets: inherit
