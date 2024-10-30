@@ -1,0 +1,47 @@
+Licences:
+Apache-2.0
+BSD-2-Clause
+BSD-3-Clause
+MIT
+MPL-2.0
+
+Packages:
+atomicgo.dev/cursor; MIT
+atomicgo.dev/keyboard; MIT
+atomicgo.dev/schedule; MIT
+github.com/apapsch/go-jsonmerge/v2; MIT
+github.com/containerd/console; Apache-2.0
+github.com/cpuguy83/go-md2man/v2; MIT
+github.com/fsnotify/fsnotify; BSD-3-Clause
+github.com/go-viper/mapstructure/v2; MIT
+github.com/golang/go; BSD-3-Clause
+github.com/google/uuid; BSD-3-Clause
+github.com/gookit/color; MIT
+github.com/hashicorp/go-cleanhttp; MPL-2.0
+github.com/hashicorp/go-retryablehttp; MPL-2.0
+github.com/hashicorp/go-secure-stdlib/kv-builder; MPL-2.0
+github.com/knadh/koanf/maps; MIT
+github.com/knadh/koanf/parsers/yaml; MIT
+github.com/knadh/koanf/providers/file; MIT
+github.com/knadh/koanf/v2; MIT
+github.com/lithammer/fuzzysearch; MIT
+github.com/mattn/go-runewidth; MIT
+github.com/mitchellh/colorstring; MIT
+github.com/mitchellh/copystructure; MIT
+github.com/mitchellh/mapstructure; MIT
+github.com/mitchellh/reflectwalk; MIT
+github.com/oapi-codegen/runtime; Apache-2.0
+github.com/olekukonko/tablewriter; MIT
+github.com/ovh/okms-sdk-go; Apache-2.0
+github.com/pterm/pterm; MIT
+github.com/rivo/uniseg; MIT
+github.com/russross/blackfriday/v2; BSD-2-Clause
+github.com/schollz/progressbar/v3; MIT
+github.com/spf13/cobra; Apache-2.0
+github.com/spf13/pflag; BSD-3-Clause
+github.com/xo/terminfo; MIT
+golang.org/x/crypto; BSD-3-Clause
+golang.org/x/sys; BSD-3-Clause
+golang.org/x/term; BSD-3-Clause
+golang.org/x/text; BSD-3-Clause
+gopkg.in/yaml.v3; Apache-2.0
