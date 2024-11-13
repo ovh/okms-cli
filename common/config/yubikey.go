@@ -57,7 +57,7 @@ func (epCfg *yubikeyAuth) TlsCertificates() []tls.Certificate {
 
 	// FIXME: Where / How to close the connection ?
 	// The issue preventing us from deferring the close is that we
-	// return a tls.Certificate thta have a remote private key / signer that requires
+	// return a tls.Certificate that have a remote private key / signer that requires
 	// the connection to stay open. Anyway, the connection will be closed on program exit, so we may not
 	// need to close it by ourself. However it would be cleaner.
 	// defer yubiKey.Close()

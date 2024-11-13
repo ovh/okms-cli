@@ -1,6 +1,6 @@
 # okms-cli
 [![build](https://github.com/ovh/okms-cli/actions/workflows/build.yaml/badge.svg?branch=main)](https://github.com/ovh/okms-cli/actions/workflows/build.yaml)
-[![license](https://img.shields.io/badge/license-Apache%202.0-red.svg?style=flat)](https://raw.githubusercontent.com/ovh/okms-sdk-go/master/LICENSE)
+[![license](https://img.shields.io/badge/license-Apache%202.0-red.svg?style=flat)](https://raw.githubusercontent.com/ovh/okms-sdk-go/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/ovh/okms-cli)](https://goreportcard.com/report/github.com/ovh/okms-cli)
 
 The CLI to interact with your [OVHcloud KMS](https://help.ovhcloud.com/csm/en-ie-kms-quick-start?id=kb_article_view&sysparm_article=KB0063362) services.
 
