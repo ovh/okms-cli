@@ -15,9 +15,14 @@ jobs:
   build:
     uses: ./.github/workflows/build.yaml
     secrets: inherit
+    
+  integration-tests:
+    needs: build
+    uses: ./.github/workflows/test.yaml
+    secrets: inherit
 
   docker-build:
-    needs: build
+    needs: integration-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +42,7 @@ jobs:
       - run: KO_DOCKER_REPO=ghcr.io/ovh/okms-cli ko build --tags ${{ github.ref_name }},latest --push --bare --platform=linux/arm64,linux/amd64 ./cmd/okms
   
   goreleaser:
-    needs: build
+    needs: integration-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -4,7 +4,6 @@ input:
   format: json
 steps:
   - script: mkdir -p ./out/coverage && GOCOVERDIR=./out/coverage {{ .cmd_path }} -c {{ .cfg_path }} --output {{ .input.format }} {{ .input.args }}
-    # info: "{{ .cmd_path }} -c {{ .cfg_path }} --output {{ .input.format }} {{ .input.args }}"
     vars:
       code:
         from: result.code

@@ -54,6 +54,73 @@ testcases:
           - result.code ShouldEqual 0
           - result.systemoutjson.objects_list ShouldJSONContainWithKey id {{ .value.keyId }}
 
+  - name: Update key
+    steps:
+      - name: Check AES key current name
+        type: okms-cmd
+        args: keys get {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.name ShouldEqual "test-aes-1"
+      - name: Update AES key name
+        type: okms-cmd
+        args: keys update {{ .Create-Keys.aesKeyId }} --name test-aes-1-updated
+      - name: Check AES key new name
+        type: okms-cmd
+        args: keys get {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.name ShouldEqual "test-aes-1-updated"
+
+  - name: Activate and Deactivate
+    steps:
+      - name: Check AES key is active
+        type: okms-cmd
+        args: keys get {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.attributes.state ShouldEqual "active"
+      - name: Try activate AES key
+        type: okms-cmd
+        args: keys activate {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Deactivate AES key
+        type: okms-cmd
+        args: keys deactivate {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Check AES key is deactivated
+        type: okms-cmd
+        args: keys get {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.attributes.state ShouldEqual "deactivated"
+      - name: Compromise AES key
+        type: okms-cmd
+        args: keys deactivate {{ .Create-Keys.aesKeyId }} --reason key_compromise
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Check AES key is compromised
+        type: okms-cmd
+        args: keys get {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.attributes.state ShouldEqual "compromised"
+          - result.systemoutjson.attributes.compromise_date ShouldNotBeNil
+      - name: Reactivate AES key
+        type: okms-cmd
+        args: keys activate {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Check AES key is active
+        type: okms-cmd
+        args: keys get {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.attributes.state ShouldEqual "active"
+          - result.systemoutjson.attributes.compromise_date ShouldBeNil
+
   - name: AES Encryption
     steps:
       - name: Encrypt data
@@ -281,6 +348,9 @@ testcases:
         args: keys import --usage encrypt,decrypt --symmetric test-import-aes YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
         assertions:
           - result.code ShouldEqual 0
+        vars:
+          toDeleteAesKeyId:
+            from: result.systemoutjson.id
       - name: Import RSA PKCS1 key
         type: okms-cmd
         args: keys import --usage sign,verify test-import-rsa-pkcs1 @testdata/rsa_pkcs1.priv.pem
@@ -315,15 +385,45 @@ testcases:
 
   - name: Delete the keys
     steps:
+      - name: Try delete active AES key
+        type: okms-cmd
+        args: keys delete {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Deactivate AES key
+        type: okms-cmd
+        args: keys deactivate {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Delete deactivated AES key
+        type: okms-cmd
+        args: keys delete {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
       - name: Force delete the {{ .value.kind }} key
         type: okms-cmd
         range:
-          - keyId: "{{ .Create-Keys.aesKeyId }}"
-            kind: AES
           - keyId: "{{ .Create-Keys.rsaKeyId }}"
             kind: RSA
           - keyId: "{{ .Create-Keys.ecKeyId }}"
             kind: ECDSA
         args: keys delete {{ .value.keyId }} --force
+        assertions:
+          - result.code ShouldEqual 0
+
+  - name: Cleanup Domain
+    steps:
+      - name: List all keys
+        type: okms-cmd
+        args: keys ls
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          allKeys:
+            from: result.systemoutjson.objects_list
+      - name: Force delete {{ .value.type }} key {{ .value.name }}
+        type: okms-cmd
+        range: "{{.allKeys}}"
+        args: keys delete {{ .value.id }} --force
         assertions:
           - result.code ShouldEqual 0
