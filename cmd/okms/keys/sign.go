@@ -84,12 +84,11 @@ SIGNATURE can also be passed from a file or stdin using '-' or '@'. Stdin can ho
 			valid := exit.OnErr2(common.Client().Verify(cmd.Context(), keyId, params.signatureAlgorithm.Alg(), true, data, signature))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(valid)
-			} else {
-				if valid {
-					fmt.Println("Signature is valid")
-				} else {
-					exit.OnErr(errors.New("Signature invalid"))
-				}
+			} else if valid {
+				fmt.Println("Signature is valid")
+			}
+			if !valid {
+				exit.OnErr(errors.New("Signature invalid"))
 			}
 		} else {
 			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), keyId, utils.PtrTo(types.Jwk)))
