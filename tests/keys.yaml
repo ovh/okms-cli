@@ -1,0 +1,329 @@
+name: okms-cli keys test suite
+description: Test the OKMS keys subcommand
+testcases:
+  - name: Create Keys
+    steps:
+      - name: Create an AES 256 key
+        type: okms-cmd
+        args: keys new --type oct --size 256 test-aes-1 --usage encrypt,decrypt,wrapKey,unwrapKey
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          aesKeyId:
+            from: result.systemoutjson.id
+      - name: Create an RSA 2048 key pair
+        type: okms-cmd
+        args: keys new --type rsa --size 2048 test-rsa-1 --usage sign,verify
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          rsaKeyId:
+            from: result.systemoutjson.id
+      - name: Create an ECDSA P-256 key pair
+        type: okms-cmd
+        args: keys new --type ec --curve P-256 test-ecdsa-1 --usage sign,verify
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          ecKeyId:
+            from: result.systemoutjson.id
+      - name: Get the {{ .value.kind }} keys
+        type: okms-cmd
+        range:
+          - keyId: "{{ .Create-Keys.aesKeyId }}"
+            kind: AES
+          - keyId: "{{ .Create-Keys.rsaKeyId }}"
+            kind: RSA
+          - keyId: "{{ .Create-Keys.ecKeyId }}"
+            kind: ECDSA
+        args: keys get {{ .value.keyId }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.id ShouldEqual {{ .value.keyId }}
+      - name: List the keys and check {{ .value.kind }}
+        type: okms-cmd
+        range:
+          - keyId: "{{ .Create-Keys.aesKeyId }}"
+            kind: AES
+          - keyId: "{{ .Create-Keys.rsaKeyId }}"
+            kind: RSA
+          - keyId: "{{ .Create-Keys.ecKeyId }}"
+            kind: ECDSA
+        args: keys ls
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.objects_list ShouldJSONContainWithKey id {{ .value.keyId }}
+
+  - name: AES Encryption
+    steps:
+      - name: Encrypt data
+        type: okms-cmd
+        args: keys encrypt {{ .Create-Keys.aesKeyId }} "Hello World !!!"
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          ciphertext:
+            from: result.systemoutjson
+      - name: Decrypt data
+        type: okms-cmd
+        args: keys decrypt {{ .Create-Keys.aesKeyId }} {{ .ciphertext }}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "Hello World !!!"
+
+  - name: Data Keys
+    steps:
+      - name: Generate data key
+        type: okms-cmd
+        args: keys datakey new {{ .Create-Keys.aesKeyId }} --name test-dk --size 256
+        vars:
+          plainDatakey:
+            from: result.systemoutjson.plain
+          cipherDatakey:
+            from: result.systemoutjson.encrypted
+        assertions:
+          - result.code ShouldEqual 0
+
+      - name: Decrypt data key
+        type: okms-cmd
+        args: keys datakey decrypt {{ .Create-Keys.aesKeyId }} "{{ .cipherDatakey }}"
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson ShouldEqual {{ .plainDatakey }}
+
+  - name: AEAD streaming encryption
+    steps:
+      - name: Create large file
+        script: mkdir -p ./data && dd if=/dev/urandom of=./data/plain.bin bs=51200 count=10000
+      - name: Checksum file
+        script: sha256sum ./data/plain.bin > data/checksum.txt
+      - name: Encrypt file
+        type: okms-cmd
+        args: keys encrypt --dk {{ .Create-Keys.aesKeyId }} @./data/plain.bin data/encrypted.out
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Decrypt file
+        type: okms-cmd
+        args: keys decrypt --dk {{ .Create-Keys.aesKeyId }} @data/encrypted.out ./data/plain.bin
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Verify decrypted output
+        script: sha256sum -c data/checksum.txt
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Cleanup files
+        script: rm -Rf ./data
+
+  - name: Asymmetric RSA signature
+    steps:
+      - name: Sign RS256
+        type: okms-cmd
+        args: keys sign --alg RS256 {{ .Create-Keys.rsaKeyId }} "hello world !!!"
+        vars:
+          signature:
+            from: result.systemoutjson
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Verify RS256
+        type: okms-cmd
+        args: keys verify --alg RS256 {{ .Create-Keys.rsaKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Local verify RS256
+        type: okms-cmd
+        args: keys verify --alg RS256 --local {{ .Create-Keys.rsaKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Sign PS256
+        type: okms-cmd
+        args: keys sign --alg PS256 {{ .Create-Keys.rsaKeyId }} "hello world !!!"
+        vars:
+          signature:
+            from: result.systemoutjson
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Verify PS256
+        type: okms-cmd
+        args: keys verify --alg PS256 {{ .Create-Keys.rsaKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson ShouldJSONEqual true
+      - name: Local verify PS256
+        type: okms-cmd
+        args: keys verify --alg PS256 --local {{ .Create-Keys.rsaKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 0
+          # - result.systemoutjson ShouldJSONEqual true
+
+      - name: Verify wrong alg ES256
+        type: okms-cmd
+        args: keys verify --alg ES256 {{ .Create-Keys.rsaKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Verify RS256 failure
+        type: okms-cmd
+        args: keys verify --alg RS256 {{ .Create-Keys.rsaKeyId }} "hello world !!!" "bad signature"
+        assertions:
+          - result.code ShouldEqual 1
+          - result.systemoutjson ShouldJSONEqual false
+
+  - name: Asymmetric ECDSA signature
+    steps:
+      - name: Sign ES256
+        type: okms-cmd
+        args: keys sign --alg ES256 {{ .Create-Keys.ecKeyId }} "hello world !!!"
+        vars:
+          signature:
+            from: result.systemoutjson
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Verify ES256
+        type: okms-cmd
+        args: keys verify --alg ES256 {{ .Create-Keys.ecKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Local verify ES256
+        type: okms-cmd
+        args: keys verify --alg ES256 --local {{ .Create-Keys.ecKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Sign ES256
+        type: okms-cmd
+        args: keys sign --alg ES256 {{ .Create-Keys.ecKeyId }} "hello world !!!"
+        vars:
+          signature:
+            from: result.systemoutjson
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Verify ES256
+        type: okms-cmd
+        args: keys verify --alg ES256 {{ .Create-Keys.ecKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson ShouldJSONEqual true
+      - name: Local verify ES256
+        type: okms-cmd
+        args: keys verify --alg ES256 --local {{ .Create-Keys.ecKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 0
+          # - result.systemoutjson ShouldJSONEqual true
+
+      - name: Verify wrong alg ES384
+        type: okms-cmd
+        args: keys verify --alg ES384 {{ .Create-Keys.ecKeyId }} "hello world !!!" {{ .signature }}
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Verify ES256 failure
+        type: okms-cmd
+        args: keys verify --alg ES256 {{ .Create-Keys.ecKeyId }} "hello world !!!" "bad signature"
+        assertions:
+          - result.code ShouldEqual 1
+          - result.systemoutjson ShouldJSONEqual false
+
+  - name: Key export
+    steps:
+      - name: Export AES
+        type: okms-cmd
+        format: text
+        args: keys export {{ .Create-Keys.aesKeyId }}
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Export RSA to PKCS1
+        type: okms-cmd
+        format: text
+        args: keys export {{ .Create-Keys.rsaKeyId }} --format pkcs1
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldStartWith "-----BEGIN RSA PUBLIC KEY-----"
+          - result.systemout ShouldEndWith "-----END RSA PUBLIC KEY-----"
+      - name: Export RSA to SPKI/PKIX
+        type: okms-cmd
+        format: text
+        args: keys export {{ .Create-Keys.rsaKeyId }} --format pkix
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldStartWith "-----BEGIN PUBLIC KEY-----"
+          - result.systemout ShouldEndWith "-----END PUBLIC KEY-----"
+      - name: Export RSA to OpenSSH
+        type: okms-cmd
+        format: text
+        args: keys export {{ .Create-Keys.rsaKeyId }} --format openssh
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldStartWith "ssh-rsa "
+      - name: Export ECDSA to PKCS1
+        type: okms-cmd
+        format: text
+        args: keys export {{ .Create-Keys.ecKeyId }} --format pkcs1
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Export ECDSA to SPKI/PKIX
+        type: okms-cmd
+        format: text
+        args: keys export {{ .Create-Keys.ecKeyId }} --format pkix
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldStartWith "-----BEGIN PUBLIC KEY-----"
+          - result.systemout ShouldEndWith "-----END PUBLIC KEY-----"
+      - name: Export ECDSA to OpenSSH
+        type: okms-cmd
+        format: text
+        args: keys export {{ .Create-Keys.ecKeyId }} --format openssh
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldStartWith "ecdsa-sha2-nistp256 "
+
+  - name: Key import
+    steps:
+      - name: Import AES key
+        type: okms-cmd
+        args: keys import --usage encrypt,decrypt --symmetric test-import-aes YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Import RSA PKCS1 key
+        type: okms-cmd
+        args: keys import --usage sign,verify test-import-rsa-pkcs1 @testdata/rsa_pkcs1.priv.pem
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Import RSA PKCS8 key
+        type: okms-cmd
+        args: keys import --usage sign,verify test-import-rsa-pkcs8 @testdata/rsa_pkcs8.priv.pem
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Import RSA openssh key
+        type: okms-cmd
+        args: keys import --usage sign,verify test-import-rsa-ssh @testdata/rsa_ssh.priv.pem
+        assertions:
+          - result.code ShouldEqual 0
+
+      - name: Import ECDSA SEC1 key
+        type: okms-cmd
+        args: keys import --usage sign,verify test-import-ecdsa-sec1 @testdata/ecdsa_sec1.priv.pem
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Import ECDSA PKCS8 key
+        type: okms-cmd
+        args: keys import --usage sign,verify test-import-ecdsa-pkcs8 @testdata/ecdsa_pkcs8.priv.pem
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Import ECDSA openssh key
+        type: okms-cmd
+        args: keys import --usage sign,verify test-import-ecdsa-ssh @testdata/ecdsa_ssh.priv.pem
+        assertions:
+          - result.code ShouldEqual 0
+
+  - name: Delete the keys
+    steps:
+      - name: Force delete the {{ .value.kind }} key
+        type: okms-cmd
+        range:
+          - keyId: "{{ .Create-Keys.aesKeyId }}"
+            kind: AES
+          - keyId: "{{ .Create-Keys.rsaKeyId }}"
+            kind: RSA
+          - keyId: "{{ .Create-Keys.ecKeyId }}"
+            kind: ECDSA
+        args: keys delete {{ .value.keyId }} --force
+        assertions:
+          - result.code ShouldEqual 0

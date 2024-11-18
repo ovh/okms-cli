@@ -1,0 +1,73 @@
+name: okms-cli x509 test suite
+description: Test the OKMS x509 subcommand
+testcases:
+  - name: Create Keys
+    steps:
+      - name: Create an RSA 2048 key pair
+        type: okms-cmd
+        args: keys new --type rsa --size 2048 test-rsa-1 --usage sign,verify
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          rsaKeyId:
+            from: result.systemoutjson.id
+      - name: Create an ECDSA P-256 key pair
+        type: okms-cmd
+        args: keys new --type ec --curve P-256 test-ecdsa-1 --usage sign,verify
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          ecKeyId:
+            from: result.systemoutjson.id
+
+  - name: Create CA
+    steps:
+      - name: Create self-signed CA
+        type: okms-cmd
+        args: x509 create ca {{ .Create-Keys.rsaKeyId }} --cn Test-CA-RSA > out/ca.pem
+        assertions:
+          - result.code ShouldEqual 0
+
+  - name: Create certificate
+    steps:
+      - name: Create self-signed certificate
+        type: okms-cmd
+        args: x509 create cert {{ .Create-Keys.ecKeyId }} --cn Test-cert-ECDSA --server-auth
+        assertions:
+          - result.code ShouldEqual 0
+
+  - name: Create and sign CSR
+    steps:
+      - name: Create CSR
+        type: okms-cmd
+        args: x509 create csr {{ .Create-Keys.ecKeyId }} --cn Test-cert-ECDSA > out/csr.pem
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Sign CSR without CA Key Id
+        type: okms-cmd
+        args: x509 sign out/csr.pem out/ca.pem --client-auth
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Sign CSR with CA Key Id
+        type: okms-cmd
+        args: x509 sign out/csr.pem out/ca.pem {{ .Create-Keys.rsaKeyId }} --client-auth
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Sign CSR with wrong CA Key Id
+        type: okms-cmd
+        args: x509 sign out/csr.pem out/ca.pem {{ .Create-Keys.ecKeyId }} --client-auth
+        assertions:
+          - result.code ShouldEqual 1
+
+  - name: Delete the keys
+    steps:
+      - name: Force delete the {{ .value.kind }} key
+        type: okms-cmd
+        range:
+          - keyId: "{{ .Create-Keys.rsaKeyId }}"
+            kind: RSA
+          - keyId: "{{ .Create-Keys.ecKeyId }}"
+            kind: ECDSA
+        args: keys delete {{ .value.keyId }} --force
+        assertions:
+          - result.code ShouldEqual 0
