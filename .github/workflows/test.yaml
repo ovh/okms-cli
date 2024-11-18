@@ -1,0 +1,56 @@
+name: test
+
+on:
+  workflow_call: {}
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-build-env
+      - name: Build CLI
+        run: go build -cover ./cmd/okms
+      - name: Setup Venom
+        run: |
+          wget https://github.com/ovh/venom/releases/download/v1.2.0/venom.linux-amd64
+          mv venom.linux-amd64 venom
+          chmod +x venom
+      - name: Setup okms config file
+        run: |
+          echo "${{secrets.CERTIFICATE}}" > tls.crt
+          echo "${{secrets.PRIVATE_KEY}}" > tls.key
+
+          cat > okms.yaml <<-EOF
+          version: 1
+          profile: default
+          profiles:
+            default: # default profile
+              http:
+                endpoint: ${{secrets.KMS_HTTP_ENDPOINT}}
+                auth:
+                  type: mtls
+                  cert: $(pwd)/tls.crt
+                  key: $(pwd)/tls.key
+          EOF
+      - name: Test connectivity to KMS dmain
+        run: ./okms keys ls -d -c okms.yaml
+      - name: Execute tests
+        run: make -C tests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test_results
+          path: |
+            ./tests/out/test_results.html
+            ./tests/out/venom.log
+          retention-days: 5
+        if: always()
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            ./tests/out/coverage.txt
+            ./tests/out/coverage.html
+          retention-days: 5
+    

@@ -1,0 +1,23 @@
+name: main-branch
+
+on:
+  push:
+    # run only against tags
+    branches: 
+      - main
+
+permissions:
+  contents: write
+  packages: write
+  # issues: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yaml
+    secrets: inherit
+    
+  integration-tests:
+    needs: build
+    uses: ./.github/workflows/test.yaml
+    secrets: inherit
+    

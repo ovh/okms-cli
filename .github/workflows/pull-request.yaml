@@ -29,3 +29,8 @@ jobs:
       - commitlint
     uses: ./.github/workflows/build.yaml
     secrets: inherit
+
+  test:
+    needs: build
+    uses: ./.github/workflows/test.yaml
+    secrets: inherit
