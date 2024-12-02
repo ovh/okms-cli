@@ -33,4 +33,5 @@ jobs:
   test:
     needs: build
     uses: ./.github/workflows/test.yaml
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     secrets: inherit
