@@ -41,7 +41,7 @@ In both cases, DATA can be either plain text, a '-' to read from stdin, or a fil
 	signCmd.Run = func(cmd *cobra.Command, args []string) {
 		data := readDigest(params.signatureAlgorithm, args[1], "Signing", noProgress)
 		keyId := exit.OnErr2(uuid.Parse(args[0]))
-		signature := exit.OnErr2(common.Client().Sign(cmd.Context(), keyId, params.signatureAlgorithm.Alg(), true, data))
+		signature := exit.OnErr2(common.Client().Sign(cmd.Context(), keyId, nil, params.signatureAlgorithm.Alg(), true, data))
 		if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 			output.JsonPrint(signature)
 		} else {
