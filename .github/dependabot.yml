@@ -10,6 +10,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    reviewers:
+      - ovh/kms
   - package-ecosystem: "gomod" # See documentation for possible values
     directories:
       - "/"
@@ -19,3 +21,5 @@ updates:
     allow:
       - dependency-type: all
     open-pull-requests-limit: 20
+    reviewers:
+      - ovh/kms
