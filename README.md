@@ -102,7 +102,7 @@ Use "okms [command] --help" for more information about a command.
 
 Default settings can be set using a configuration file named _okms.yaml_ and located in the _${HOME}/.ovh-kms_ directory.
 
-Example for omks.yaml:
+Example for `omks.yaml`:
 
 ```yaml
 version: 1
@@ -118,7 +118,7 @@ profiles:
         key: /path/to/domain/key.pem
 ```
 
-These settings can can be overwritten using environment variables:
+These settings can be overwritten using environment variables:
 
 - KMS_HTTP_ENDPOINT
 - KMS_HTTP_CA
