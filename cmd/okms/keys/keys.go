@@ -394,6 +394,9 @@ func newUpdateKeyCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&name, "name", "", "Update key with a new name")
+	if err := cmd.MarkFlagRequired("name"); err != nil {
+		panic(err)
+	}
 
 	return cmd
 }
