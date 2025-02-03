@@ -3,6 +3,7 @@
 [![license](https://img.shields.io/badge/license-Apache%202.0-red.svg?style=flat)](https://raw.githubusercontent.com/ovh/okms-sdk-go/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/ovh/okms-cli)](https://goreportcard.com/report/github.com/ovh/okms-cli)
 
 The CLI to interact with your [OVHcloud KMS](https://help.ovhcloud.com/csm/en-ie-kms-quick-start?id=kb_article_view&sysparm_article=KB0063362) services.
+It supports both REST API and KMIP protocol.
 
 > **NOTE:** THIS PROJECT IS CURRENTLY UNDER DEVELOPMENT AND SUBJECT TO BREAKING CHANGES.
 
@@ -89,6 +90,7 @@ Available Commands:
   configure   Configure CLI options
   help        Help about any command
   keys        Manage domain keys
+  kmip        Manage kmip objects
   version     Print the version information
   x509        Generate, and sign x509 certificates
 
@@ -116,6 +118,13 @@ profiles:
         type: mtls # Optional, defaults to "mtls"
         cert: /path/to/domain/cert.pem
         key: /path/to/domain/key.pem
+    kmip:
+      endpoint: myserver.acme.com:5696
+      ca: /path/to/public-ca.crt # Optional if the CA is in system store
+      auth:
+        type: mtls # Optional, defaults to "mtls"
+        cert: /path/to/domain/cert.pem
+        key: /path/to/domain/key.pem
 ```
 
 These settings can be overwritten using environment variables:
@@ -124,12 +133,24 @@ These settings can be overwritten using environment variables:
 - KMS_HTTP_CA
 - KMS_HTTP_CERT
 - KMS_HTTP_KEY
+and
+- KMS_KMIP_ENDPOINT
+- KMS_KMIP_CA
+- KMS_KMIP_CERT
+- KMS_KMIP_KEY
 
 ```bash
-export KMS_HTTP_ENDPOINT=https://the-kms.ovh
+# REST API
+export KMS_HTTP_ENDPOINT=https://myserver.acme.com
 export KMS_HTTP_CA=/path/to/certs/ca.crt
 export KMS_HTTP_CERT=/path/to/certs/user.crt
 export KMS_HTTP_KEY=/path/to/certs/user.key
+
+# KMIP
+export KMS_KMIP_ENDPOINT=myserver.acme.com:5696
+export KMS_KMIP_CA=/path/to/certs/ca.crt
+export KMS_KMIP_CERT=/path/to/certs/user.crt
+export KMS_KMIP_KEY=/path/to/certs/user.key
 ```
 
 but each of them can be overwritten with CLI arguments.

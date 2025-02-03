@@ -7,6 +7,7 @@ import (
 
 	"github.com/ovh/okms-cli/cmd/okms/configure"
 	"github.com/ovh/okms-cli/cmd/okms/keys"
+	"github.com/ovh/okms-cli/cmd/okms/kmip"
 
 	"github.com/ovh/okms-cli/cmd/okms/x509"
 	"github.com/ovh/okms-cli/common/commands"
@@ -37,6 +38,7 @@ func createRootCommand() *cobra.Command {
 		keys.CreateCommand(nil),
 		// secrets.CreateCommand(nil),
 		x509.CreateX509Command(nil),
+		kmip.NewCommand(nil),
 		configure.CreateCommand(),
 		commands.NewMarkdownCmd(command),
 		commands.NewVersionCmd(&version, &commit, &date),

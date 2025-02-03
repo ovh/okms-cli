@@ -44,18 +44,16 @@ func (e *KeyUsageList) Set(value string) error {
 	arr := strings.Split(value, ",")
 	// in case the user set the usage in the following form: --usage encrypt,decrypt:
 	// split the input value, and trim spaces
+	*e = (*e)[:0] // Reset slice content
 	for i := range arr {
 		arr[i] = strings.TrimSpace(arr[i])
 	}
 	for _, v := range arr {
-		switch v {
-		case "sign", "verify", "encrypt", "decrypt", "wrapKey", "unwrapKey", "deriveKey", "deriveBits":
-			ku := KeyUsage(v)
-			*e = append(*e, ku)
-
-		default:
-			return errors.New(`must be one of "sign", "verify", "encrypt", "decrypt", "wrapKey", "unwrapKey", "deriveKey", "deriveBits"`)
+		var ku KeyUsage
+		if err := ku.Set(v); err != nil {
+			return err
 		}
+		*e = append(*e, ku)
 	}
 	return nil
 }
