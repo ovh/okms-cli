@@ -1,0 +1,181 @@
+name: okms-cli KMIP test suite
+description: Test the OKMS KMIP subcommand
+testcases:
+  - name: Create keys
+    steps:
+      - name: Create an AES 256 key
+        type: okms-cmd
+        args: kmip create symmetric --alg AES --size 256 --name test-aes-1 --usage encrypt,decrypt,wrapKey,unwrapKey
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          aesKeyId:
+            from: result.systemoutjson.UniqueIdentifier
+      - name: Create an RSA 2048 key pair
+        type: okms-cmd
+        args: kmip create key-pair --alg RSA --size 2048 --private-name test-rsa-1-private --public-name test-rsa-1-public --public-usage verify,encrypt --private-usage sign,decrypt
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          pubRsaKeyId:
+            from: result.systemoutjson.PublicKeyUniqueIdentifier
+          privRsaKeyId:
+            from: result.systemoutjson.PrivateKeyUniqueIdentifier
+      - name: Create an ECDSA P-256 key pair
+        type: okms-cmd
+        args: kmip create key-pair --alg ECDSA --curve P-256 --private-name test-ecdsa-1-private --public-name test-ecdsa-1-public
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          pubEcdsaKeyId:
+            from: result.systemoutjson.PublicKeyUniqueIdentifier
+          privEcdsaKeyId:
+            from: result.systemoutjson.PrivateKeyUniqueIdentifier
+
+  - name: Activate object
+    steps:
+      - name: Activate AES key
+        type: okms-cmd
+        args: kmip activate {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Activate AES key again should fail
+        type: okms-cmd
+        args: kmip activate {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 1
+
+  - name: Locate kmip objects
+    steps:
+      - name: Locate without details
+        type: okms-cmd
+        args: kmip locate
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.aesKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.pubRsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.privRsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.pubEcdsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.privEcdsaKeyId}}
+
+      - name: Locate with details
+        type: okms-cmd
+        args: kmip locate --details
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldContainSubstring {{.Create-keys.aesKeyId}}
+          - result.systemout ShouldContainSubstring {{.Create-keys.pubRsaKeyId}}
+          - result.systemout ShouldContainSubstring {{.Create-keys.privRsaKeyId}}
+          - result.systemout ShouldContainSubstring {{.Create-keys.pubEcdsaKeyId}}
+          - result.systemout ShouldContainSubstring {{.Create-keys.privEcdsaKeyId}}
+
+      - name: Locate by type
+        type: okms-cmd
+        args: kmip locate --type PrivateKey
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.Create-keys.aesKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.Create-keys.pubRsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.privRsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.Create-keys.pubEcdsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.privEcdsaKeyId}}
+
+      - name: Locate by state
+        type: okms-cmd
+        args: kmip locate --state active
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.aesKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.Create-keys.pubRsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.Create-keys.privRsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.Create-keys.pubEcdsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.Create-keys.privEcdsaKeyId}}
+
+  - name: Get attributes
+    steps:
+      - name: Get attributes of AES key
+        type: okms-cmd
+        args: kmip attributes get {{.Create-keys.aesKeyId}}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldContainSubstring {{.Create-keys.aesKeyId}}
+          - result.systemout ShouldContainSubstring Active
+
+  - name: Revoke kmip object
+    steps:
+      - name: Revoke activated AES key
+        type: okms-cmd
+        args: kmip revoke --force {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Revoke activated AES key againe should fail
+        type: okms-cmd
+        args: kmip revoke --force {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 1
+
+  - name: Destroy kmip object
+    steps:
+      - name: Destroy revoked object
+        type: okms-cmd
+        args: kmip destroy --force {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Destroy a destroyed object should fail
+        type: okms-cmd
+        args: kmip destroy --force {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Destroy PreActive object
+        type: okms-cmd
+        args: kmip destroy --force {{.Create-keys.pubRsaKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Locate without details
+        type: okms-cmd
+        args: kmip locate
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.Create-keys.aesKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.Create-keys.pubRsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.privRsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.pubEcdsaKeyId}}
+          - result.systemoutjson.UniqueIdentifier ShouldContain {{.Create-keys.privEcdsaKeyId}}
+
+  - name: Cleanup Domain
+    steps:
+      # - name: List all active keys
+      #   type: okms-cmd
+      #   args: kmip ls --state active
+      #   assertions:
+      #     - result.code ShouldEqual 0
+      #   vars:
+      #     allKeys:
+      #       from: result.systemoutjson.UniqueIdentifier
+
+      # - name: Revoke key {{ .value }}
+      #   type: okms-cmd
+      #   skip:
+      #     - allKeys ShouldBeNil
+      #   range: "{{ .allKeys }}"
+      #   args: kmip revoke {{ .value }} --force
+      #   assertions:
+      #     - result.code ShouldEqual 0
+
+      - name: List all keys
+        type: okms-cmd
+        args: kmip ls
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          allKeys:
+            from: result.systemoutjson.UniqueIdentifier
+
+      - name: Force delete {{ .value }}
+        type: okms-cmd
+        range: "{{.allKeys}}"
+        args: kmip delete {{ .value }} --force
+        assertions:
+          - result.code ShouldEqual 0

@@ -33,6 +33,12 @@ jobs:
                   type: mtls
                   cert: $(pwd)/tls.crt
                   key: $(pwd)/tls.key
+              kmip:
+                endpoint: ${{secrets.KMS_KMIP_ENDPOINT}}
+                auth:
+                  type: mtls
+                  cert: $(pwd)/tls.crt
+                  key: $(pwd)/tls.key
           EOF
       - name: Test connectivity to KMS dmain
         run: ./okms keys ls -d -c okms.yaml

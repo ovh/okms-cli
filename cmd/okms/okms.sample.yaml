@@ -9,6 +9,13 @@ profiles:
         type: mtls # Optional, defaults to "mtls"
         cert: /path/to/domain/cert.pem
         key: /path/to/domain/key.pem
+    kmip:
+      endpoint: myserver.acme.com:5696
+      ca: /path/to/public-ca.crt # Optional if the CA is in system store
+      auth:
+        type: mtls # Optional, defaults to "mtls"
+        cert: /path/to/domain/cert.pem
+        key: /path/to/domain/key.pem
   my-profile:
     http:
       endpoint: https://my-profile.kms.ovh:8080
