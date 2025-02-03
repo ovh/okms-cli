@@ -45,6 +45,135 @@ testcases:
         assertions:
           - result.code ShouldEqual 1
 
+  - name: Register then Get secrets
+    steps:
+      - name: Register plain secret
+        type: okms-cmd
+        args: kmip register secret "foo bar"
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          secretId:
+            from: result.systemoutjson.UniqueIdentifier
+      - name: Get plain secret
+        type: okms-cmd
+        args: kmip get {{ .secretId }}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "foo bar"
+      - name: Register base64 secret
+        type: okms-cmd
+        args: kmip register secret --base64 {{ (b64enc "foo bar") }}
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          secretId:
+            from: result.systemoutjson.UniqueIdentifier
+      - name: Get base64 secret
+        type: okms-cmd
+        args: kmip get {{ .secretId }}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "foo bar"
+
+  - name: Register then Get Symmetric key
+    steps:
+      - name: Register plain AES key
+        type: okms-cmd
+        args: kmip register symmetric --alg AES "aaaaaaaaaaaaaaaa"
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          symId:
+            from: result.systemoutjson.UniqueIdentifier
+      - name: Get plain AES key
+        type: okms-cmd
+        args: kmip get {{ .symId }}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "aaaaaaaaaaaaaaaa"
+      - name: Register base64 AES key
+        type: okms-cmd
+        args: kmip register symmetric --base64 --alg AES {{(b64enc "aaaaaaaaaaaaaaaa")}}
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          symId:
+            from: result.systemoutjson.UniqueIdentifier
+      - name: Get base64 AES key
+        type: okms-cmd
+        args: kmip get {{ .symId }}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "aaaaaaaaaaaaaaaa"
+
+  - name: Register PrivateKeys
+    steps:
+      - name: Register {{ .value.name }}
+        type: okms-cmd
+        args: kmip register private-key @{{ .value.file }}
+        assertions:
+          - result.code ShouldEqual 0
+        range:
+          - name: ECDSA PKCS8 private key
+            file: testdata/ecdsa_pkcs8.priv.pem
+          - name: ECDSA SEC1 private key
+            file: testdata/ecdsa_sec1.priv.pem
+          - name: RSA PKCS8 private key
+            file: testdata/rsa_pkcs8.priv.pem
+          - name: RSA PKCS1 private key
+            file: testdata/rsa_pkcs1.priv.pem
+
+  - name: Register PublicKeys
+    steps:
+      - name: Register {{ .value.name }}
+        type: okms-cmd
+        args: kmip register public-key @{{ .value.file }}
+        assertions:
+          - result.code ShouldEqual 0
+        range:
+          - name: ECDSA X509 public key
+            file: testdata/ecdsa_x509.pub.pem
+          - name: RSA X509 public key
+            file: testdata/rsa_x509.pub.pem
+          - name: ECDSA PKCS8 private key
+            file: testdata/ecdsa_pkcs8.priv.pem
+          - name: ECDSA SEC1 private key
+            file: testdata/ecdsa_sec1.priv.pem
+          - name: RSA PKCS8 private key
+            file: testdata/rsa_pkcs8.priv.pem
+          - name: RSA PKCS1 private key
+            file: testdata/rsa_pkcs1.priv.pem
+
+  - name: Register Key Pairs
+    steps:
+      - name: Register {{ .value.name }}
+        type: okms-cmd
+        args: kmip register key-pair @{{ .value.file }}
+        assertions:
+          - result.code ShouldEqual 0
+        range:
+          - name: ECDSA PKCS8 private key
+            file: testdata/ecdsa_pkcs8.priv.pem
+          - name: ECDSA SEC1 private key
+            file: testdata/ecdsa_sec1.priv.pem
+          - name: RSA PKCS8 private key
+            file: testdata/rsa_pkcs8.priv.pem
+          - name: RSA PKCS1 private key
+            file: testdata/rsa_pkcs1.priv.pem
+
+  - name: Register Certificate
+    steps:
+      - name: Register X509 certificate
+        type: okms-cmd
+        args: kmip register certificate @testdata/x509_cert.pem
+        assertions:
+          - result.code ShouldEqual 0
+
   - name: Locate kmip objects
     steps:
       - name: Locate without details
@@ -115,6 +244,22 @@ testcases:
         args: kmip revoke --force {{.Create-keys.aesKeyId}}
         assertions:
           - result.code ShouldEqual 1
+
+  - name: Rekey kmip objects
+    steps:
+      - name: Rekey AES key
+        type: okms-cmd
+        args: kmip rekey {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          newAesKeyId:
+            from: result.systemoutjson.UniqueIdentifier
+      - name: Get replacement key attributes
+        type: okms-cmd
+        args: kmip attr get {{.newAesKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
 
   - name: Destroy kmip object
     steps:

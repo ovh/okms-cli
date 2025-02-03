@@ -29,6 +29,9 @@ Manage kmip objects
 * [okms kmip attributes](okms_kmip_attributes.md)	 - Manage an object's attributes
 * [okms kmip create](okms_kmip_create.md)	 - Create kmip keys
 * [okms kmip destroy](okms_kmip_destroy.md)	 - Destroy an object
+* [okms kmip get](okms_kmip_get.md)	 - Get the materials from a kmip object
 * [okms kmip locate](okms_kmip_locate.md)	 - List kmip objects
+* [okms kmip register](okms_kmip_register.md)	 - Register a kmip object
+* [okms kmip rekey](okms_kmip_rekey.md)	 - Rekey a symmetric key object
 * [okms kmip revoke](okms_kmip_revoke.md)	 - Revoke an object
 

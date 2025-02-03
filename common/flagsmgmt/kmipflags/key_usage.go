@@ -57,6 +57,7 @@ func (e *KeyUsageList) Set(value string) error {
 	arr := strings.Split(value, ",")
 	// in case the user set the usage in the following form: --usage encrypt,decrypt:
 	// split the input value, and trim spaces
+	*e = (*e)[:0] // Reset slice content
 	for i := range arr {
 		arr[i] = strings.TrimSpace(arr[i])
 	}

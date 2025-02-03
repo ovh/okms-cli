@@ -65,6 +65,9 @@ func NewCommand(cust CustomizeFunc) *cobra.Command {
 		activateCommand(),
 		revokeCommand(),
 		destroyCommand(),
+		getCommand(),
+		registerCommand(),
+		rekeyCommand(),
 	)
 
 	return cmd
