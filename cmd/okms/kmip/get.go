@@ -45,7 +45,7 @@ func getCommand() *cobra.Command {
 			pem := exit.OnErr2(obj.PkixPem())
 			fmt.Println(pem)
 		default:
-			os.Stdout.Write(ttlv.MarshalText(resp))
+			os.Stdout.Write(ttlv.MarshalText(obj))
 		}
 	}
 
