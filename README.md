@@ -32,7 +32,7 @@ It supports both REST API and KMIP protocol.
 <!-- TOC --><a name="prerequisites"></a>
 # Prerequisites
 
-1. Go 1.23
+1. Go 1.24
 2. **(Optional)** In linux, install libpcsc-dev if building with yubikey support enabled
 
 <!-- TOC --><a name="build"></a>

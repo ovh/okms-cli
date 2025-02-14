@@ -1,6 +1,6 @@
 module github.com/ovh/okms-cli
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/go-piv/piv-go/v2 v2.3.0

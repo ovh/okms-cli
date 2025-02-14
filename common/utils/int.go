@@ -21,6 +21,13 @@ func ToInt32[N Integer](n N) int32 {
 	return int32(n)
 }
 
+func ToUint64[N Integer](n N) uint64 {
+	if n < 0 {
+		panic("Integer overflow: must not be negative")
+	}
+	return uint64(n)
+}
+
 // func ToUint32[N Integer](n N) uint32 {
 // 	if n < 0 || uint64(n) > math.MaxUint32 {
 // 		panic("Integer overflow")
