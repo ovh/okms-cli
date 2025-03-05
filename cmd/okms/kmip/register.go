@@ -53,7 +53,7 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 			secret = exit.OnErr2(base64.StdEncoding.AppendDecode(nil, secret))
 		}
 		//TODO: Make secret type a flag argument
-		req := kmipClient.Register().Secret(kmip.Password, secret)
+		req := kmipClient.Register().Secret(kmip.SecretDataTypePassword, secret)
 		if *name != "" {
 			req = req.WithName(*name)
 		}
@@ -163,7 +163,7 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 		if *isPem {
 			req = kmipClient.Register().PemCertificate(cert)
 		} else {
-			req = kmipClient.Register().Certificate(kmip.X_509, cert)
+			req = kmipClient.Register().Certificate(kmip.CertificateTypeX_509, cert)
 		}
 
 		if *name != "" {
@@ -224,7 +224,7 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 			req = req.WithAttribute(kmip.AttributeNameComment, *comment)
 		}
 		if *privLink != "" {
-			req = req.WithLink(kmip.PrivateKeyLink, *privLink)
+			req = req.WithLink(kmip.LinkTypePrivateKeyLink, *privLink)
 		}
 		resp := exit.OnErr2(req.ExecContext(cmd.Context()))
 
@@ -280,7 +280,7 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 			req = req.WithAttribute(kmip.AttributeNameComment, *comment)
 		}
 		if *pubLink != "" {
-			req = req.WithLink(kmip.PublicKeyLink, *pubLink)
+			req = req.WithLink(kmip.LinkTypePublicKeyLink, *pubLink)
 		}
 		resp := exit.OnErr2(req.ExecContext(cmd.Context()))
 
@@ -341,7 +341,7 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 
 		// Register public key
 		pubReq := kmipClient.Register().PemPublicKey(key, publicUsage.ToCryptographicUsageMask()).
-			WithLink(kmip.PrivateKeyLink, privResp.UniqueIdentifier)
+			WithLink(kmip.LinkTypePrivateKeyLink, privResp.UniqueIdentifier)
 		if *publicName != "" {
 			pubReq = pubReq.WithName(*publicName)
 		}
@@ -355,7 +355,7 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 
 		// Update public key link in private key
 		exit.OnErr2(kmipClient.AddAttribute(privResp.UniqueIdentifier, kmip.AttributeNameLink, kmip.Link{
-			LinkType:               kmip.PublicKeyLink,
+			LinkType:               kmip.LinkTypePublicKeyLink,
 			LinkedObjectIdentifier: pubResp.UniqueIdentifier,
 		}).ExecContext(cmd.Context()))
 

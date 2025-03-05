@@ -11,9 +11,9 @@ import (
 type SymmetricAlg kmip.CryptographicAlgorithm
 
 const (
-	AES      SymmetricAlg = SymmetricAlg(kmip.AES)
-	TDES     SymmetricAlg = SymmetricAlg(kmip.TDES)
-	SKIPJACK SymmetricAlg = SymmetricAlg(kmip.SKIPJACK)
+	AES      SymmetricAlg = SymmetricAlg(kmip.CryptographicAlgorithmAES)
+	TDES     SymmetricAlg = SymmetricAlg(kmip.CryptographicAlgorithmTDES)
+	SKIPJACK SymmetricAlg = SymmetricAlg(kmip.CryptographicAlgorithmSKIPJACK)
 )
 
 func (e *SymmetricAlg) String() string {
@@ -41,8 +41,8 @@ func (e *SymmetricAlg) Type() string {
 type AsymmetricAlg kmip.CryptographicAlgorithm
 
 const (
-	RSA   AsymmetricAlg = AsymmetricAlg(kmip.RSA)
-	ECDSA AsymmetricAlg = AsymmetricAlg(kmip.ECDSA)
+	RSA   AsymmetricAlg = AsymmetricAlg(kmip.CryptographicAlgorithmRSA)
+	ECDSA AsymmetricAlg = AsymmetricAlg(kmip.CryptographicAlgorithmECDSA)
 )
 
 func (e *AsymmetricAlg) String() string {

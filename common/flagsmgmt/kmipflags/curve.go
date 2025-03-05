@@ -10,9 +10,9 @@ import (
 type EcCurve kmip.RecommendedCurve
 
 const (
-	P256 EcCurve = EcCurve(kmip.P_256)
-	P384 EcCurve = EcCurve(kmip.P_384)
-	P521 EcCurve = EcCurve(kmip.P_521)
+	P256 EcCurve = EcCurve(kmip.RecommendedCurveP_256)
+	P384 EcCurve = EcCurve(kmip.RecommendedCurveP_384)
+	P521 EcCurve = EcCurve(kmip.RecommendedCurveP_521)
 )
 
 func (e *EcCurve) String() string {
