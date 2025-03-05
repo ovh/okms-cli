@@ -5,7 +5,7 @@ testcases:
     steps:
       - name: Create an AES 256 key
         type: okms-cmd
-        args: kmip create symmetric --alg AES --size 256 --name test-aes-1 --usage encrypt,decrypt,wrapKey,unwrapKey
+        args: kmip create symmetric --alg AES --size 256 --usage encrypt,decrypt,wrapKey,unwrapKey
         assertions:
           - result.code ShouldEqual 0
         vars:
@@ -13,7 +13,7 @@ testcases:
             from: result.systemoutjson.UniqueIdentifier
       - name: Create an RSA 2048 key pair
         type: okms-cmd
-        args: kmip create key-pair --alg RSA --size 2048 --private-name test-rsa-1-private --public-name test-rsa-1-public --public-usage verify,encrypt --private-usage sign,decrypt
+        args: kmip create key-pair --alg RSA --size 2048 --public-usage verify,encrypt --private-usage sign,decrypt
         assertions:
           - result.code ShouldEqual 0
         vars:
@@ -23,7 +23,7 @@ testcases:
             from: result.systemoutjson.PrivateKeyUniqueIdentifier
       - name: Create an ECDSA P-256 key pair
         type: okms-cmd
-        args: kmip create key-pair --alg ECDSA --curve P-256 --private-name test-ecdsa-1-private --public-name test-ecdsa-1-public
+        args: kmip create key-pair --alg ECDSA --curve P-256
         assertions:
           - result.code ShouldEqual 0
         vars:

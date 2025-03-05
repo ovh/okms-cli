@@ -11,13 +11,13 @@ import (
 type KeyUsage kmip.CryptographicUsageMask
 
 const (
-	SIGN      KeyUsage = KeyUsage(kmip.Sign)
-	VERIFY    KeyUsage = KeyUsage(kmip.Verify)
-	ENCRYPT   KeyUsage = KeyUsage(kmip.Encrypt)
-	DECRYPT   KeyUsage = KeyUsage(kmip.Decrypt)
-	WRAPKEY   KeyUsage = KeyUsage(kmip.WrapKey)
-	UNWRAPKEY KeyUsage = KeyUsage(kmip.UnwrapKey)
-	DERIVEKEY KeyUsage = KeyUsage(kmip.DeriveKey)
+	SIGN      KeyUsage = KeyUsage(kmip.CryptographicUsageSign)
+	VERIFY    KeyUsage = KeyUsage(kmip.CryptographicUsageVerify)
+	ENCRYPT   KeyUsage = KeyUsage(kmip.CryptographicUsageEncrypt)
+	DECRYPT   KeyUsage = KeyUsage(kmip.CryptographicUsageDecrypt)
+	WRAPKEY   KeyUsage = KeyUsage(kmip.CryptographicUsageWrapKey)
+	UNWRAPKEY KeyUsage = KeyUsage(kmip.CryptographicUsageUnwrapKey)
+	DERIVEKEY KeyUsage = KeyUsage(kmip.CryptographicUsageDeriveKey)
 )
 
 func (e *KeyUsage) String() string {
