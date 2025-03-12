@@ -21,7 +21,7 @@ import (
 
 func kvGetCmd() *cobra.Command {
 	var (
-		version int32
+		version uint32
 	)
 
 	cmd := &cobra.Command{
@@ -29,7 +29,7 @@ func kvGetCmd() *cobra.Command {
 		Short: "Retrieves the value from KMS's key-value store at the given key name",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *int32
+			var v *uint32
 			if version != 0 {
 				v = &version
 			}
@@ -56,7 +56,7 @@ func kvGetCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Int32Var(&version, "version", 0, "If passed, the value at the version number will be returned")
+	cmd.Flags().Uint32Var(&version, "version", 0, "If passed, the value at the version number will be returned")
 	return cmd
 }
 
@@ -78,14 +78,14 @@ func kvPutCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			var c *int32
+			var c uint32
 			if cas != -1 {
-				c = &cas
+				c = utils.ToUint32(c)
 			}
 			body := types.PostSecretRequest{
 				Data: new(any),
 				Options: &types.PostSecretOptions{
-					Cas: c,
+					Cas: &c,
 				},
 			}
 
@@ -122,14 +122,14 @@ func kvPatchCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			var c *int32
+			var c uint32
 			if cas != -1 {
-				c = &cas
+				c = utils.ToUint32(cas)
 			}
 			body := types.PostSecretRequest{
 				Data: new(any),
 				Options: &types.PostSecretOptions{
-					Cas: c,
+					Cas: &c,
 				},
 			}
 
@@ -150,7 +150,7 @@ func kvPatchCmd() *cobra.Command {
 
 func kvDeleteCmd() *cobra.Command {
 	var (
-		versions []int32
+		versions []uint
 	)
 
 	cmd := &cobra.Command{
@@ -161,18 +161,22 @@ func kvDeleteCmd() *cobra.Command {
 			if len(versions) == 0 {
 				exit.OnErr(common.Client().DeleteSecretRequest(cmd.Context(), args[0]))
 			} else {
-				exit.OnErr(common.Client().DeleteSecretVersions(cmd.Context(), args[0], versions))
+				var v []uint32
+				for _, val := range versions {
+					v = append(v, utils.ToUint32(val))
+				}
+				exit.OnErr(common.Client().DeleteSecretVersions(cmd.Context(), args[0], v))
 			}
 		},
 	}
 
-	cmd.Flags().Int32SliceVar(&versions, "versions", []int32{}, "Specifies the version numbers to delete. (Comma separated list of versions)")
+	cmd.Flags().UintSliceVar(&versions, "versions", []uint{}, "Specifies the version numbers to delete. (Comma separated list of versions)")
 	return cmd
 }
 
 func kvUndeleteCmd() *cobra.Command {
 	var (
-		versions []int32
+		versions []uint
 	)
 
 	cmd := &cobra.Command{
@@ -180,18 +184,22 @@ func kvUndeleteCmd() *cobra.Command {
 		Short: "Undeletes the data for the provided version and path in the key-value store.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit.OnErr(common.Client().PostSecretUndelete(cmd.Context(), args[0], versions))
+			var v []uint32
+			for _, val := range versions {
+				v = append(v, utils.ToUint32(val))
+			}
+			exit.OnErr(common.Client().PostSecretUndelete(cmd.Context(), args[0], v))
 		},
 	}
 
-	cmd.Flags().Int32SliceVar(&versions, "versions", []int32{}, "Specifies the version numbers to delete. (Comma separated list of versions)")
+	cmd.Flags().UintSliceVar(&versions, "versions", []uint{}, "Specifies the version numbers to delete. (Comma separated list of versions)")
 	_ = cmd.MarkFlagRequired("versions")
 	return cmd
 }
 
 func kvDestroyCmd() *cobra.Command {
 	var (
-		versions []int32
+		versions []uint
 	)
 
 	cmd := &cobra.Command{
@@ -199,19 +207,23 @@ func kvDestroyCmd() *cobra.Command {
 		Short: "Permanently removes the specified versions' data from the key-value store.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit.OnErr(common.Client().PostSecretDestroy(cmd.Context(), args[0], versions))
+			var v []uint32
+			for _, val := range versions {
+				v = append(v, utils.ToUint32(val))
+			}
+			exit.OnErr(common.Client().PostSecretDestroy(cmd.Context(), args[0], v))
 		},
 	}
 
-	cmd.Flags().Int32SliceVar(&versions, "versions", []int32{}, "Specifies the version numbers to delete. (Comma separated list of versions)")
+	cmd.Flags().UintSliceVar(&versions, "versions", []uint{}, "Specifies the version numbers to delete. (Comma separated list of versions)")
 	_ = cmd.MarkFlagRequired("versions")
 	return cmd
 }
 
 func kvSubkeysCmd() *cobra.Command {
 	var (
-		version int32
-		depth   int32
+		version uint32
+		depth   uint32
 	)
 
 	cmd := &cobra.Command{
@@ -219,12 +231,12 @@ func kvSubkeysCmd() *cobra.Command {
 		Short: "Provides the subkeys within a secret entry that exists at the requested path.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var v *int32
+			var v *uint32
 			if cmd.Flag("version").Changed {
 				v = &version
 			}
 
-			var d *int32
+			var d *uint32
 			if cmd.Flag("depth").Changed {
 				d = &depth
 			}
@@ -251,8 +263,8 @@ func kvSubkeysCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Int32Var(&version, "version", 0, "The version to return")
-	cmd.Flags().Int32Var(&depth, "depth", 0, "Deepest nesting level to provide in the output")
+	cmd.Flags().Uint32Var(&version, "version", 0, "The version to return")
+	cmd.Flags().Uint32Var(&depth, "depth", 0, "Deepest nesting level to provide in the output")
 	return cmd
 }
 
