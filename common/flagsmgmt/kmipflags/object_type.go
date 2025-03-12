@@ -16,7 +16,6 @@ const (
 	ObjectTypePublicKey    = ObjectType(kmip.ObjectTypePublicKey)
 	ObjectTypePrivateKey   = ObjectType(kmip.ObjectTypePrivateKey)
 	ObjectTypeSplitKey     = ObjectType(kmip.ObjectTypeSplitKey)
-	//nolint:staticcheck // Needed to support legacy templates
 	ObjectTypeTemplate     = ObjectType(kmip.ObjectTypeTemplate)
 	ObjectTypeSecretData   = ObjectType(kmip.ObjectTypeSecretData)
 	ObjectTypeOpaqueObject = ObjectType(kmip.ObjectTypeOpaqueObject)
