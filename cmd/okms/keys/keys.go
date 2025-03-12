@@ -28,7 +28,7 @@ import (
 
 func newListServiceKeysCmd() *cobra.Command {
 	var (
-		keysPageSize int32
+		keysPageSize uint32
 		listAll      bool
 	)
 
@@ -75,7 +75,7 @@ func newListServiceKeysCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Int32Var(&keysPageSize, "page-size", 100, "Number of keys to fetch per page (between 10 and 500)")
+	cmd.Flags().Uint32Var(&keysPageSize, "page-size", 100, "Number of keys to fetch per page (between 10 and 500)")
 	cmd.Flags().BoolVarP(&listAll, "all", "A", false, "List all keys (including deactivated and deleted ones)")
 	return cmd
 }
