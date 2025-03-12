@@ -28,16 +28,17 @@ func ToUint64[N Integer](n N) uint64 {
 	return uint64(n)
 }
 
-// func ToUint32[N Integer](n N) uint32 {
-// 	if n < 0 || uint64(n) > math.MaxUint32 {
-// 		panic("Integer overflow")
-// 	}
-// 	return uint32(n)
-// }
+func ToUint32[N Integer](n N) uint32 {
+	if n < 0 || uint64(n) > math.MaxUint32 {
+		panic("Integer overflow")
+	}
+	return uint32(n)
+}
 
-// func ToUint16[N Integer](n N) uint16 {
-// 	if n < 0 || uint64(n) > math.MaxUint16 {
-// 		panic("Integer overflow")
-// 	}
-// 	return uint16(n)
-// }
+func ToUint32Array[N Integer](l []N) []uint32 {
+	var v []uint32
+	for _, val := range l {
+		v = append(v, ToUint32(val))
+	}
+	return v
+}

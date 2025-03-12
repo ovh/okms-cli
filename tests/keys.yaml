@@ -230,7 +230,7 @@ testcases:
           - result.code ShouldEqual 1
       - name: Verify RS256 failure
         type: okms-cmd
-        args: keys verify --alg RS256 {{ .Create-Keys.rsaKeyId }} "hello world !!!" "bad signature"
+        args: keys verify --alg RS256 {{ .Create-Keys.rsaKeyId }} "hello world !!!" "YmFkIHNpZ25hdHVyZQo="
         assertions:
           - result.code ShouldEqual 1
           - result.systemoutjson ShouldJSONEqual false
@@ -283,11 +283,10 @@ testcases:
           - result.code ShouldEqual 1
       - name: Verify ES256 failure
         type: okms-cmd
-        args: keys verify --alg ES256 {{ .Create-Keys.ecKeyId }} "hello world !!!" "bad signature"
+        args: keys verify --alg ES256 {{ .Create-Keys.ecKeyId }} "hello world !!!" "YmFkIHNpZ25hdHVyZQo="
         assertions:
           - result.code ShouldEqual 1
           - result.systemoutjson ShouldJSONEqual false
-
   - name: Key export
     steps:
       - name: Export AES
