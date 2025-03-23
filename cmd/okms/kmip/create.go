@@ -51,9 +51,13 @@ func createSymmetricKey() *cobra.Command {
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		req := kmipClient.Create().
-			SymmetricKey(kmip.CryptographicAlgorithm(alg), *size, usage.ToCryptographicUsageMask()).
-			WithAttribute(kmip.AttributeNameExtractable, *extractable).
-			WithAttribute(kmip.AttributeNameSensitive, *sensitive)
+			SymmetricKey(kmip.CryptographicAlgorithm(alg), *size, usage.ToCryptographicUsageMask())
+		if cmd.Flags().Changed("extractable") {
+			req = req.WithAttribute(kmip.AttributeNameExtractable, *extractable)
+		}
+		if cmd.Flags().Changed("sensitive") {
+			req = req.WithAttribute(kmip.AttributeNameSensitive, *sensitive)
+		}
 		if *name != "" {
 			req = req.WithName(*name)
 		}
@@ -127,9 +131,13 @@ func createKeyPair() *cobra.Command {
 		if *publicName != "" {
 			req = req.PublicKey().WithName(*publicName)
 		}
-		req = req.PrivateKey().
-			WithAttribute(kmip.AttributeNameExtractable, *privateExtractable).
-			WithAttribute(kmip.AttributeNameSensitive, *privateSensitive)
+		req = req.PrivateKey()
+		if cmd.Flags().Changed("private-extractable") {
+			req = req.WithAttribute(kmip.AttributeNameExtractable, *privateExtractable)
+		}
+		if cmd.Flags().Changed("private-sensitive") {
+			req = req.WithAttribute(kmip.AttributeNameSensitive, *privateSensitive)
+		}
 		if *description != "" {
 			req = req.Common().WithAttribute(kmip.AttributeNameDescription, *description)
 		}
