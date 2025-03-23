@@ -9,9 +9,9 @@ okms keys list [flags]
 ### Options
 
 ```
-  -A, --all               List all keys (including deactivated and deleted ones)
-  -h, --help              help for list
-      --page-size int32   Number of keys to fetch per page (between 10 and 500) (default 100)
+  -A, --all                List all keys (including deactivated and deleted ones)
+  -h, --help               help for list
+      --page-size uint32   Number of keys to fetch per page (between 10 and 500) (default 100)
 ```
 
 ### Options inherited from parent commands

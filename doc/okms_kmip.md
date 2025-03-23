@@ -5,14 +5,17 @@ Manage kmip objects
 ### Options
 
 ```
-      --auth-method mtls   Authentication method to use
-      --ca string          Path to CA bundle
-      --cert string        Path to certificate
-  -d, --debug              Activate debug mode
-      --endpoint string    Endpoint address to kmip
-  -h, --help               help for kmip
-      --key string         Path to key file
-      --output text|json   The formatting style for command output. (default text)
+      --auth-method mtls            Authentication method to use
+      --ca string                   Path to CA bundle
+      --cert string                 Path to certificate
+  -d, --debug                       Activate debug mode
+      --endpoint string             Endpoint address to kmip
+  -h, --help                        help for kmip
+      --key string                  Path to key file
+      --no-ccv                      Disable kmip client correlation value
+      --output text|json            The formatting style for command output. (default text)
+      --timeout duration            Timeout duration for KMIP requests
+      --tls12-ciphers stringArray   List of TLS 1.2 ciphers to use
 ```
 
 ### Options inherited from parent commands

@@ -155,6 +155,8 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 	name := cmd.Flags().String("name", "", "Optional name for the certificate")
 	description := cmd.Flags().String("description", "", "Set the description attribute")
 	comment := cmd.Flags().String("comment", "", "Set the comment attribute")
+	publicKeyId := cmd.Flags().String("public-key", "", "Set a link to the certificates public key")
+	parent := cmd.Flags().String("parent", "", "Set a link to the parent signing certificate")
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		cert := flagsmgmt.BytesFromArg(args[0], 16_000)
@@ -174,6 +176,12 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 		}
 		if *comment != "" {
 			req = req.WithAttribute(kmip.AttributeNameComment, *comment)
+		}
+		if *publicKeyId != "" {
+			req = req.WithLink(kmip.LinkTypePublicKeyLink, *publicKeyId)
+		}
+		if *parent != "" {
+			req = req.WithLink(kmip.LinkTypeCertificateLink, *parent)
 		}
 		resp := exit.OnErr2(req.ExecContext(cmd.Context()))
 
