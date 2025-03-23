@@ -112,9 +112,13 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 		}
 
 		req := kmipClient.Register().
-			SymmetricKey(kmip.CryptographicAlgorithm(alg), usage.ToCryptographicUsageMask(), key).
-			WithAttribute(kmip.AttributeNameExtractable, *extractable).
-			WithAttribute(kmip.AttributeNameSensitive, *sensitive)
+			SymmetricKey(kmip.CryptographicAlgorithm(alg), usage.ToCryptographicUsageMask(), key)
+		if cmd.Flags().Changed("extractable") {
+			req = req.WithAttribute(kmip.AttributeNameExtractable, *extractable)
+		}
+		if cmd.Flags().Changed("sensitive") {
+			req = req.WithAttribute(kmip.AttributeNameSensitive, *sensitive)
+		}
 		if *name != "" {
 			req = req.WithName(*name)
 		}
@@ -275,9 +279,13 @@ VALUE can be either plain text, a '-' to read from stdin, or a filename prefixed
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		key := flagsmgmt.BytesFromArg(args[0], 16_000)
 
-		req := kmipClient.Register().PemPrivateKey(key, usage.ToCryptographicUsageMask()).
-			WithAttribute(kmip.AttributeNameExtractable, *extractable).
-			WithAttribute(kmip.AttributeNameSensitive, *sensitive)
+		req := kmipClient.Register().PemPrivateKey(key, usage.ToCryptographicUsageMask())
+		if cmd.Flags().Changed("extractable") {
+			req = req.WithAttribute(kmip.AttributeNameExtractable, *extractable)
+		}
+		if cmd.Flags().Changed("sensitive") {
+			req = req.WithAttribute(kmip.AttributeNameSensitive, *sensitive)
+		}
 		if *name != "" {
 			req = req.WithName(*name)
 		}
