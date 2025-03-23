@@ -25,7 +25,9 @@ var kmipClient *kmipclient.Client
 func SetupKmipFlags(command *cobra.Command, cust CustomizeFunc) {
 	debug := command.PersistentFlags().BoolP("debug", "d", false, "Activate debug mode")
 	// retry := command.PersistentFlags().Uint32("retry", 4, "Maximum number of HTTP retries")
-	// timeout := command.PersistentFlags().Duration("timeout", okms.DefaultHTTPClientTimeout, "Timeout duration for HTTP requests")
+	timeout := command.PersistentFlags().Duration("timeout", 0, "Timeout duration for KMIP requests")
+	noCcv := command.PersistentFlags().Bool("no-ccv", false, "Disable kmip client correlation value")
+	tls12Ciphers := command.PersistentFlags().StringArray("tls12-ciphers", nil, "List of TLS 1.2 ciphers to use")
 
 	f := func(*[]kmipclient.Option) {}
 	if cust != nil {
@@ -33,15 +35,20 @@ func SetupKmipFlags(command *cobra.Command, cust CustomizeFunc) {
 	}
 
 	config.SetupEndpointFlags(command, "kmip", func(command *cobra.Command, cfg config.EndpointConfig) {
-		middlewares := []kmipclient.Middleware{
-			kmipclient.CorrelationValueMiddleware(uuid.NewString),
+		middlewares := []kmipclient.Middleware{}
+		if !*noCcv {
+			middlewares = append(middlewares, kmipclient.CorrelationValueMiddleware(uuid.NewString))
 		}
 		if *debug {
 			middlewares = append(middlewares, kmipclient.DebugMiddleware(os.Stderr, ttlv.MarshalXML))
 		}
+		if *timeout > 0 {
+			middlewares = append(middlewares, kmipclient.TimeoutMiddleware(*timeout))
+		}
 		opts := []kmipclient.Option{
 			kmipclient.WithTlsConfig(cfg.TlsConfig("")),
 			kmipclient.WithMiddlewares(middlewares...),
+			kmipclient.WithTlsCipherSuiteNames(*tls12Ciphers...),
 		}
 		f(&opts)
 		kmipClient = exit.OnErr2(kmipclient.Dial(
