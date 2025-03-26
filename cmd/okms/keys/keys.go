@@ -43,9 +43,9 @@ func newListServiceKeysCmd() *cobra.Command {
 			}
 			// Let's list all the keys by putting them all in memory. The memory is not an issue, unless a domain has hundreds of thousands of keys
 			// Filter keys by activation state
-			stateFilter := types.Active
+			stateFilter := types.KeyStatesActive
 			if listAll {
-				stateFilter = types.All
+				stateFilter = types.KeyStatesAll
 			}
 			for key, err := range common.Client().ListAllServiceKeys(&keysPageSize, &stateFilter).Iter(cmd.Context()) {
 				exit.OnErr(err)

@@ -1,5 +1,3 @@
-//go:build unstable
-
 package secrets
 
 import (
@@ -112,7 +110,7 @@ func kvGetMetadataCommand() *cobra.Command {
 func kvPutMetadataCommand() *cobra.Command {
 	var (
 		casRequired        bool
-		maxVersions        int32
+		maxVersions        uint32
 		deleteVersionAfter string
 		customMetadata     map[string]string
 	)
@@ -132,34 +130,24 @@ func kvPutMetadataCommand() *cobra.Command {
 				d = &deleteVersionAfter
 			}
 
-			var m *int32
+			var m *uint32
 			if cmd.Flag("max-versions").Changed {
 				m = &maxVersions
-			}
-
-			var cm *map[string]interface{}
-			if len(customMetadata) > 0 {
-				tmp := make(map[string]interface{})
-				cm = &tmp
-				for k, v := range customMetadata {
-					(*cm)[k] = v
-				}
 			}
 
 			body := types.SecretUpdatableMetadata{
 				CasRequired:        c,
 				DeleteVersionAfter: d,
 				MaxVersions:        m,
-				CustomMetadata:     new(any),
+				CustomMetadata:     &customMetadata,
 			}
-			*body.CustomMetadata = cm
 
 			exit.OnErr(common.Client().PostSecretMetadata(cmd.Context(), args[0], body))
 		},
 	}
 
 	cmd.Flags().BoolVar(&casRequired, "cas-required", false, "If true all keys will require the cas parameter to be set on all write requests.")
-	cmd.Flags().Int32Var(&maxVersions, "max-versions", 0, "The number of versions to keep per key. This value applies to all keys, but a key's metadata setting can overwrite this value. Once a key has more than the configured allowed versions, the oldest version will be permanently deleted. ")
+	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 0, "The number of versions to keep per key. This value applies to all keys, but a key's metadata setting can overwrite this value. Once a key has more than the configured allowed versions, the oldest version will be permanently deleted. ")
 	cmd.Flags().StringVar(&deleteVersionAfter, "delete-after", "0s", "If set, specifies the length of time before a version is deleted.\nDate format, see: https://developer.hashicorp.com/vault/docs/concepts/duration-format")
 	cmd.Flags().StringToStringVar(&customMetadata, "custom-metadata", map[string]string{}, "Specifies arbitrary version-agnostic key=value metadata meant to describe a secret.\nThis can be specified multiple times to add multiple pieces of metadata.")
 	return cmd
@@ -168,7 +156,7 @@ func kvPutMetadataCommand() *cobra.Command {
 func kvPatchMetadataCommand() *cobra.Command {
 	var (
 		casRequired        bool
-		maxVersions        int32
+		maxVersions        uint32
 		deleteVersionAfter string
 		customMetadata     map[string]string
 	)
@@ -188,34 +176,24 @@ func kvPatchMetadataCommand() *cobra.Command {
 				d = &deleteVersionAfter
 			}
 
-			var m *int32
+			var m *uint32
 			if cmd.Flag("max-versions").Changed {
 				m = &maxVersions
-			}
-
-			var cm *map[string]interface{}
-			if len(customMetadata) > 0 {
-				tmp := make(map[string]interface{})
-				cm = &tmp
-				for k, v := range customMetadata {
-					(*cm)[k] = v
-				}
 			}
 
 			body := types.SecretUpdatableMetadata{
 				CasRequired:        c,
 				DeleteVersionAfter: d,
 				MaxVersions:        m,
-				CustomMetadata:     new(any),
+				CustomMetadata:     &customMetadata,
 			}
-			*body.CustomMetadata = cm
 
 			exit.OnErr(common.Client().PatchSecretMetadata(cmd.Context(), args[0], body))
 		},
 	}
 
 	cmd.Flags().BoolVar(&casRequired, "cas-required", false, "If true all keys will require the cas parameter to be set on all write requests.")
-	cmd.Flags().Int32Var(&maxVersions, "max-versions", 0, "The number of versions to keep per key. This value applies to all keys, but a key's metadata setting can overwrite this value. Once a key has more than the configured allowed versions, the oldest version will be permanently deleted. ")
+	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 0, "The number of versions to keep per key. This value applies to all keys, but a key's metadata setting can overwrite this value. Once a key has more than the configured allowed versions, the oldest version will be permanently deleted. ")
 	cmd.Flags().StringVar(&deleteVersionAfter, "delete-after", "0s", "If set, specifies the length of time before a version is deleted.\nDate format, see: https://developer.hashicorp.com/vault/docs/concepts/duration-format")
 	cmd.Flags().StringToStringVar(&customMetadata, "custom-metadata", map[string]string{}, "Specifies arbitrary version-agnostic key=value metadata meant to describe a secret.\nThis can be specified multiple times to add multiple pieces of metadata.")
 	return cmd

@@ -21,7 +21,6 @@ jobs:
         run: |
           echo "${{secrets.CERTIFICATE}}" > tls.crt
           echo "${{secrets.PRIVATE_KEY}}" > tls.key
-
           cat > okms.yaml <<-EOF
           version: 1
           profile: default
@@ -59,4 +58,3 @@ jobs:
             ./tests/out/coverage.txt
             ./tests/out/coverage.html
           retention-days: 5
-    

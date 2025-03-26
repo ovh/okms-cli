@@ -1,5 +1,3 @@
-//go:build unstable
-
 package secrets
 
 import (

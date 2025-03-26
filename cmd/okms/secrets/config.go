@@ -1,5 +1,3 @@
-//go:build unstable
-
 package secrets
 
 import (
@@ -54,7 +52,7 @@ func kvReadConfigCommand() *cobra.Command {
 func kvWriteConfigCommand() *cobra.Command {
 	var (
 		casRequired        bool
-		maxVersions        int32
+		maxVersions        uint32
 		deleteVersionAfter string
 	)
 
@@ -73,7 +71,7 @@ func kvWriteConfigCommand() *cobra.Command {
 				d = &deleteVersionAfter
 			}
 
-			var m *int32
+			var m *uint32
 			if cmd.Flag("max-versions").Changed {
 				m = &maxVersions
 			}
@@ -89,7 +87,7 @@ func kvWriteConfigCommand() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVar(&casRequired, "cas-required", false, "If true all keys will require the cas parameter to be set on all write requests.")
-	cmd.Flags().Int32Var(&maxVersions, "max-versions", 0, "The number of versions to keep per key. This value applies to all keys, but a key's metadata setting can overwrite this value. Once a key has more than the configured allowed versions, the oldest version will be permanently deleted. ")
+	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 0, "The number of versions to keep per key. This value applies to all keys, but a key's metadata setting can overwrite this value. Once a key has more than the configured allowed versions, the oldest version will be permanently deleted. ")
 	cmd.Flags().StringVar(&deleteVersionAfter, "delete-after", "0s", "If set, specifies the length of time before a version is deleted.\nDate format, see: https://developer.hashicorp.com/vault/docs/concepts/duration-format")
 	return cmd
 }
