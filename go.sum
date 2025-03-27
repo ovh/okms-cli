@@ -103,12 +103,6 @@ github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
 github.com/ovh/kmip-go v0.3.3 h1:/dWFCRug8wuBI7hZ4J2ZpFy5U00Qtesdwv883pcDDvM=
 github.com/ovh/kmip-go v0.3.3/go.mod h1:ATNCndyULLBcEt7jp4j8cR4ko4gnH37KBA9ZPeNUuKk=
-github.com/ovh/okms-sdk-go v0.4.2 h1:Vr1HQA0tWoREq5b94Ze2BnG+M1/J87ekWB2/9Cm9wAA=
-github.com/ovh/okms-sdk-go v0.4.2/go.mod h1:qHignKksvZNNywbHvwJCmy5C6Ro1ZZgNKu2PZO7XTJs=
-github.com/ovh/okms-sdk-go v0.4.3-0.20250312132334-73bb8f020781 h1:6zYOcxm6Zqs0rgpNLtN6a1OnJlwWXmOr4NF+okj5oDM=
-github.com/ovh/okms-sdk-go v0.4.3-0.20250312132334-73bb8f020781/go.mod h1:qHignKksvZNNywbHvwJCmy5C6Ro1ZZgNKu2PZO7XTJs=
-github.com/ovh/okms-sdk-go v0.4.3-0.20250325141909-a44a71a4b427 h1:oUJrxf2kcO/Y/I8wGFMIiP35Of9WHemWKF0uhlSBazY=
-github.com/ovh/okms-sdk-go v0.4.3-0.20250325141909-a44a71a4b427/go.mod h1:qHignKksvZNNywbHvwJCmy5C6Ro1ZZgNKu2PZO7XTJs=
 github.com/ovh/okms-sdk-go v0.4.3-0.20250326103329-2a75059822d8 h1:Xj2clTOAYD2dQSmHVBoT0SDXK+FHoZqgfx/5aloH7wQ=
 github.com/ovh/okms-sdk-go v0.4.3-0.20250326103329-2a75059822d8/go.mod h1:qHignKksvZNNywbHvwJCmy5C6Ro1ZZgNKu2PZO7XTJs=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
