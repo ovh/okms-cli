@@ -37,11 +37,10 @@ func secretVersionGetCmd() *cobra.Command {
 		includeData bool
 	)
 	cmd := &cobra.Command{
-		Use:   "get PATH --version VERSION ",
+		Use:   "get PATH --version=VERSION ",
 		Short: "Retrieve a secret version",
-		Args:  cobra.MinimumNArgs(2),
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-
 			var v uint32
 			if cmd.Flag("version").Changed {
 				v = version
@@ -91,13 +90,11 @@ func secretVersionListCmd() *cobra.Command {
 		Short: "Retrieve a secret version",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-
 			resp := exit.OnErr2(common.Client().ListSecretVersionV2(cmd.Context(), args[0]))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
 				for _, version := range *resp {
-
 					createdAt := version.CreatedAt
 					deactivatedAt := utils.DerefOrDefault(version.DeactivatedAt)
 					id := version.Id
@@ -140,7 +137,7 @@ func secretVersionPutCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update  PATH --version VERSION --state STATE",
 		Short: "Update a secret version",
-		Args:  cobra.MinimumNArgs(4),
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if !cmd.Flag("version").Changed {
 				fmt.Fprintln(os.Stderr, "Missing flag version")
