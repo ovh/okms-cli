@@ -51,15 +51,15 @@ func secretGetConfigCommand() *cobra.Command {
 
 func secretUpdateConfigCommand() *cobra.Command {
 	var (
-		casRequired        bool
-		maxVersions        uint32
-		deleteVersionAfter string
+		casRequired            bool
+		maxVersions            uint32
+		deactivateVersionAfter string
 	)
 
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update secrets configuration",
-		Args:  cobra.MinimumNArgs(1),
+		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var c *bool
 			if cmd.Flag("cas-required").Changed {
@@ -67,8 +67,8 @@ func secretUpdateConfigCommand() *cobra.Command {
 			}
 
 			var d *string
-			if cmd.Flag("delete-after").Changed {
-				d = &deleteVersionAfter
+			if cmd.Flag("deactivate-after").Changed {
+				d = &deactivateVersionAfter
 			}
 
 			var m *uint32
@@ -88,6 +88,6 @@ func secretUpdateConfigCommand() *cobra.Command {
 
 	cmd.Flags().BoolVar(&casRequired, "cas-required", false, "If true all keys will require the cas parameter to be set on all write requests.")
 	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 0, "The number of versions to keep per key. This value applies to all keys, but a key's metadata setting can overwrite this value. Once a key has more than the configured allowed versions, the oldest version will be permanently deleted. ")
-	cmd.Flags().StringVar(&deleteVersionAfter, "delete-after", "0s", "If set, specifies the length of time before a version is deleted.\nDate format, see: https://developer.hashicorp.com/vault/docs/concepts/duration-format")
+	cmd.Flags().StringVar(&deactivateVersionAfter, "deactivate-after", "0s", "If set, specifies the length of time before a version is deleted.\nDate format, see: https://developer.hashicorp.com/vault/docs/concepts/duration-format")
 	return cmd
 }
