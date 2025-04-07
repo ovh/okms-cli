@@ -62,8 +62,8 @@ github.com/klauspost/cpuid/v2 v2.0.10/go.mod h1:g2LTdtYhdyuGPqyWyv7qRAmj1WBqxuOb
 github.com/klauspost/cpuid/v2 v2.0.12/go.mod h1:g2LTdtYhdyuGPqyWyv7qRAmj1WBqxuObKfj5c0PQa7c=
 github.com/klauspost/cpuid/v2 v2.2.5 h1:0E5MSMDEoAulmXNFquVs//DdoomxaoTY1kUhbc/qbZg=
 github.com/klauspost/cpuid/v2 v2.2.5/go.mod h1:Lcz8mBdAVJIBVzewtcLocK12l3Y+JytZYpaMropDUws=
-github.com/knadh/koanf/maps v0.1.1 h1:G5TjmUh2D7G2YWf5SQQqSiHRJEjaicvU0KpypqB3NIs=
-github.com/knadh/koanf/maps v0.1.1/go.mod h1:npD/QZY3V6ghQDdcQzl1W4ICNVTkohC8E73eI2xW4yI=
+github.com/knadh/koanf/maps v0.1.2 h1:RBfmAW5CnZT+PJ1CVc1QSJKf4Xu9kxfQgYVQSu8hpbo=
+github.com/knadh/koanf/maps v0.1.2/go.mod h1:npD/QZY3V6ghQDdcQzl1W4ICNVTkohC8E73eI2xW4yI=
 github.com/knadh/koanf/parsers/yaml v0.1.0 h1:ZZ8/iGfRLvKSaMEECEBPM1HQslrZADk8fP1XFUxVI5w=
 github.com/knadh/koanf/parsers/yaml v0.1.0/go.mod h1:cvbUDC7AL23pImuQP0oRw/hPuccrNBS2bps8asS0CwY=
 github.com/knadh/koanf/providers/file v1.1.2 h1:aCC36YGOgV5lTtAFz2qkgtWdeQsgfxUkxDOe+2nQY3w=
@@ -103,12 +103,6 @@ github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
 github.com/ovh/kmip-go v0.3.3 h1:/dWFCRug8wuBI7hZ4J2ZpFy5U00Qtesdwv883pcDDvM=
 github.com/ovh/kmip-go v0.3.3/go.mod h1:ATNCndyULLBcEt7jp4j8cR4ko4gnH37KBA9ZPeNUuKk=
-github.com/ovh/okms-sdk-go v0.4.2 h1:Vr1HQA0tWoREq5b94Ze2BnG+M1/J87ekWB2/9Cm9wAA=
-github.com/ovh/okms-sdk-go v0.4.2/go.mod h1:qHignKksvZNNywbHvwJCmy5C6Ro1ZZgNKu2PZO7XTJs=
-github.com/ovh/okms-sdk-go v0.4.3-0.20250312132334-73bb8f020781 h1:6zYOcxm6Zqs0rgpNLtN6a1OnJlwWXmOr4NF+okj5oDM=
-github.com/ovh/okms-sdk-go v0.4.3-0.20250312132334-73bb8f020781/go.mod h1:qHignKksvZNNywbHvwJCmy5C6Ro1ZZgNKu2PZO7XTJs=
-github.com/ovh/okms-sdk-go v0.4.3-0.20250325141909-a44a71a4b427 h1:oUJrxf2kcO/Y/I8wGFMIiP35Of9WHemWKF0uhlSBazY=
-github.com/ovh/okms-sdk-go v0.4.3-0.20250325141909-a44a71a4b427/go.mod h1:qHignKksvZNNywbHvwJCmy5C6Ro1ZZgNKu2PZO7XTJs=
 github.com/ovh/okms-sdk-go v0.4.3-0.20250326103329-2a75059822d8 h1:Xj2clTOAYD2dQSmHVBoT0SDXK+FHoZqgfx/5aloH7wQ=
 github.com/ovh/okms-sdk-go v0.4.3-0.20250326103329-2a75059822d8/go.mod h1:qHignKksvZNNywbHvwJCmy5C6Ro1ZZgNKu2PZO7XTJs=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
