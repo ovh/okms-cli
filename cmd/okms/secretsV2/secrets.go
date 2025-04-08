@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/olekukonko/tablewriter"
-
 	"github.com/ovh/okms-cli/cmd/okms/common"
 	"github.com/ovh/okms-cli/common/flagsmgmt"
 	"github.com/ovh/okms-cli/common/flagsmgmt/restflags"
@@ -37,7 +35,7 @@ func secretListCmd() *cobra.Command {
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else if resp.Results != nil {
-				renderSecretListTable(resp.Results)
+				renderList(resp)
 			}
 		},
 	}
@@ -52,7 +50,6 @@ func secretPostCmd() *cobra.Command {
 		casRequired            bool
 		maxVersions            uint32
 		deactivateVersionAfter string
-		// TODO Add customMetadata ? How ?
 	)
 	cmd := &cobra.Command{
 		Use:   "create [FLAGS] PATH [DATA]",
@@ -88,29 +85,7 @@ func secretPostCmd() *cobra.Command {
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
-				casRequired = utils.DerefOrDefault(resp.Metadata.CasRequired)
-				createdAt := utils.DerefOrDefault(resp.Metadata.CreatedAt)
-				deactivateVersionAfter := utils.DerefOrDefault(resp.Metadata.DeactivateVersionAfter)
-				maxVersions := utils.DerefOrDefault(resp.Metadata.MaxVersions)
-
-				var customMetadata string
-				if resp.Metadata.CustomMetadata != nil {
-					customMetadata = fmt.Sprintf("%v", *resp.Metadata.CustomMetadata)
-				}
-
-				fmt.Println("Metadata")
-				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Key", "Value"})
-				table.AppendBulk([][]string{
-					{"Cas Required", fmt.Sprintf("%t", casRequired)},
-					{"Created at", createdAt},
-					{"Deactivate Version After", deactivateVersionAfter},
-					{"Max Versions", fmt.Sprintf("%d", maxVersions)},
-					{"Custom metadata", customMetadata},
-					{"Path", *resp.Path}, // Path is displayed in the metadata Table, which can be confusing since it's not a metadata
-					// TODO : improve path display, maybe on top of the table `Path: ...`
-				})
-				table.Render()
+				renderMetadata(utils.DerefOrDefault(resp.Path), utils.DerefOrDefault(resp.Metadata))
 			}
 		},
 	}
@@ -135,37 +110,9 @@ func secretGetCmd() *cobra.Command {
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
-				casRequired := utils.DerefOrDefault(resp.Metadata.CasRequired)
-				createdAt := utils.DerefOrDefault(resp.Metadata.CreatedAt)
-				deactivateVersionAfter := utils.DerefOrDefault(resp.Metadata.DeactivateVersionAfter)
-				maxVersions := utils.DerefOrDefault(resp.Metadata.MaxVersions)
-
-				var customMetadata string
-				if resp.Metadata.CustomMetadata != nil {
-					customMetadata = fmt.Sprintf("%v", *resp.Metadata.CustomMetadata)
-				}
-
-				fmt.Println("Metadata")
-				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Key", "Value"})
-				table.AppendBulk([][]string{
-					{"Cas Required", fmt.Sprintf("%t", casRequired)},
-					{"Created at", createdAt},
-					{"Deactivate Version After", deactivateVersionAfter},
-					{"Max Versions", fmt.Sprintf("%d", maxVersions)},
-					{"Custom metadata", customMetadata},
-					{"Path", *resp.Path},
-				})
-				table.Render()
-
+				renderMetadata(utils.DerefOrDefault(resp.Path), utils.DerefOrDefault(resp.Metadata))
 				if includeData && resp.Version.Data != nil {
-					fmt.Println("Data")
-					tableData := tablewriter.NewWriter(os.Stdout)
-					tableData.SetHeader([]string{"Key", "Value"})
-					for k, v := range *resp.Version.Data {
-						tableData.Append([]string{k, fmt.Sprintf("%v", v)})
-					}
-					tableData.Render()
+					renderDataVersion(*resp.Version.Data)
 				}
 			}
 		},
@@ -182,7 +129,6 @@ func secretPutCmd() *cobra.Command {
 		maxVersions            uint32
 		deactivateVersionAfter string
 		cas                    uint32
-		// TODO Add customMetadata ? How ?
 	)
 	cmd := &cobra.Command{
 		Use:   "update [FLAGS] PATH [DATA]",
@@ -220,28 +166,63 @@ func secretPutCmd() *cobra.Command {
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
-				casRequired = utils.DerefOrDefault(resp.Metadata.CasRequired)
-				createdAt := utils.DerefOrDefault(resp.Metadata.CreatedAt)
-				deactivateVersionAfter := utils.DerefOrDefault(resp.Metadata.DeactivateVersionAfter)
-				maxVersions := utils.DerefOrDefault(resp.Metadata.MaxVersions)
+				renderMetadata(utils.DerefOrDefault(resp.Path), utils.DerefOrDefault(resp.Metadata))
+			}
+		},
+	}
 
-				var customMetadata string
-				if resp.Metadata.CustomMetadata != nil {
-					customMetadata = fmt.Sprintf("%v", *resp.Metadata.CustomMetadata)
-				}
+	cmd.Flags().BoolVar(&casRequired, "cas-required", false, "The cas parameter will be required for all write requests if set to true")
+	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 10, "The number of versions to keep (10 default)")
+	cmd.Flags().StringVar(&deactivateVersionAfter, "deactivate-version-after", "", "Time duration before a version is deactivated")
+	cmd.Flags().Uint32Var(&cas, "cas", 0, "Secret version number. Required if cas-required is set to true.")
 
-				fmt.Println("Metadata")
-				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Key", "Value"})
-				table.AppendBulk([][]string{
-					{"Cas Required", fmt.Sprintf("%t", casRequired)},
-					{"Created at", createdAt},
-					{"Deactivate Version After", deactivateVersionAfter},
-					{"Max Versions", fmt.Sprintf("%d", maxVersions)},
-					{"Custom metadata", customMetadata},
-					{"Path", *resp.Path},
-				})
-				table.Render()
+	return cmd
+}
+
+func secretPutCustomMetadataCmd() *cobra.Command {
+	var (
+		casRequired            bool
+		maxVersions            uint32
+		deactivateVersionAfter string
+		cas                    uint32
+	)
+	cmd := &cobra.Command{
+		Use:   "update-metadata [FLAGS] PATH [CUSTOM-DATA]",
+		Short: "Update a secret",
+		Args:  cobra.MinimumNArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			in := io.Reader(os.Stdin)
+			body := types.PutSecretV2Request{
+				Metadata: &types.SecretV2MetadataShort{},
+				Version:  &types.SecretV2VersionShort{},
+			}
+			var c *uint32
+			if cmd.Flag("cas").Changed {
+				c = &cas
+			}
+
+			if cmd.Flag("cas-required").Changed {
+				body.Metadata.CasRequired = &casRequired
+			}
+			if cmd.Flag("max-versions").Changed {
+				body.Metadata.MaxVersions = &maxVersions
+			}
+			if cmd.Flag("deactivate-version-after").Changed {
+				body.Metadata.DeactivateVersionAfter = &deactivateVersionAfter
+			}
+
+			customMetadata, err := restflags.ParseArgsCustomMetadata(in, args[1:])
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Failed to parse K=V data:", err)
+				os.Exit(1)
+			}
+			body.Metadata.CustomMetadata = utils.PtrTo(types.SecretV2CustomMetadata(customMetadata))
+
+			resp := exit.OnErr2(common.Client().PutSecretV2(cmd.Context(), args[0], c, body))
+			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
+				output.JsonPrint(resp)
+			} else {
+				renderMetadata(utils.DerefOrDefault(resp.Path), utils.DerefOrDefault(resp.Metadata))
 			}
 		},
 	}
@@ -265,53 +246,4 @@ func secretDeleteCmd() *cobra.Command {
 		},
 	}
 	return cmd
-}
-
-func renderSecretListTable(data *[]types.GetSecretV2Response) {
-	if data == nil {
-		return
-	}
-	for _, v := range *data {
-		renderSecretTable(v)
-	}
-}
-
-func renderSecretTable(data types.GetSecretV2Response) {
-	casRequired := utils.DerefOrDefault(data.Metadata.CasRequired)
-	createdAt := utils.DerefOrDefault(data.Metadata.CreatedAt)
-	currentVersion := utils.DerefOrDefault(data.Metadata.CurrentVersion)
-	deactivateVersionAfter := utils.DerefOrDefault(data.Metadata.DeactivateVersionAfter)
-	maxVersions := utils.DerefOrDefault(data.Metadata.MaxVersions)
-	oldestVersion := utils.DerefOrDefault(data.Metadata.OldestVersion)
-	updatedAt := utils.DerefOrDefault(data.Metadata.UpdatedAt)
-
-	var customMetadata string
-	if data.Metadata.CustomMetadata != nil {
-		customMetadata = fmt.Sprintf("%v", *data.Metadata.CustomMetadata)
-	}
-
-	fmt.Println("Metadata")
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Key", "Value"})
-	table.AppendBulk([][]string{
-		{"Cas Required", fmt.Sprintf("%t", casRequired)},
-		{"Created at", createdAt},
-		{"Current Version", fmt.Sprintf("%d", currentVersion)},
-		{"Deactivate Version After", deactivateVersionAfter},
-		{"Max Versions", fmt.Sprintf("%d", maxVersions)},
-		{"Oldest Version", fmt.Sprintf("%d", oldestVersion)},
-		{"Updated at", updatedAt},
-		{"Custom metadata", customMetadata},
-	})
-	table.Render()
-
-	if data.Version.Data != nil {
-		fmt.Println("Data")
-		tableData := tablewriter.NewWriter(os.Stdout)
-		tableData.SetHeader([]string{"Key", "Value"})
-		for k, v := range *data.Version.Data {
-			tableData.Append([]string{k, fmt.Sprintf("%v", v)})
-		}
-		tableData.Render()
-	}
 }
