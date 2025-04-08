@@ -5,12 +5,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/ovh/okms-cli/cmd/okms/common"
 	"github.com/ovh/okms-cli/common/flagsmgmt"
 	"github.com/ovh/okms-cli/common/flagsmgmt/restflags"
 	"github.com/ovh/okms-cli/common/output"
-	"github.com/ovh/okms-cli/common/utils"
 	"github.com/ovh/okms-cli/common/utils/exit"
 	"github.com/ovh/okms-sdk-go/types"
 	"github.com/spf13/cobra"
@@ -27,6 +25,9 @@ func secretVersionCommand() *cobra.Command {
 		secretVersionPutCmd(),
 		secretVersionPostCmd(),
 		secretVersionListCmd(),
+		secretVersionActiveCmd(),
+		secretVersionDeactivateCmd(),
+		secretVersionDeleteCmd(),
 	)
 	return cmd
 }
@@ -50,30 +51,9 @@ func secretVersionGetCmd() *cobra.Command {
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
-				createdAt := resp.CreatedAt
-				deactivatedAt := utils.DerefOrDefault(resp.DeactivatedAt)
-				id := resp.Id
-				state := resp.State
-
-				fmt.Println("Metadata")
-				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Key", "Value"})
-				table.AppendBulk([][]string{
-					{"Created at", createdAt},
-					{"Deactivated at", deactivatedAt},
-					{"Id ", fmt.Sprintf("%b", id)},
-					{"State", string(state)},
-				})
-				table.Render()
-
+				renderMetadataVersion(*resp)
 				if includeData && resp.Data != nil {
-					fmt.Println("Data")
-					tableData := tablewriter.NewWriter(os.Stdout)
-					tableData.SetHeader([]string{"Key", "Value"})
-					for k, v := range *resp.Data {
-						tableData.Append([]string{k, fmt.Sprintf("%v", v)})
-					}
-					tableData.Render()
+					renderDataVersion(*resp.Data)
 				}
 			}
 		},
@@ -83,7 +63,6 @@ func secretVersionGetCmd() *cobra.Command {
 	return cmd
 }
 
-// TODO : think of a better way to display the list of versions and metadata.
 func secretVersionListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get PATH --version VERSION ",
@@ -94,41 +73,13 @@ func secretVersionListCmd() *cobra.Command {
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
-				for _, version := range *resp {
-					createdAt := version.CreatedAt
-					deactivatedAt := utils.DerefOrDefault(version.DeactivatedAt)
-					id := version.Id
-					state := version.State
-
-					fmt.Println("Metadata")
-					table := tablewriter.NewWriter(os.Stdout)
-					table.SetHeader([]string{"Key", "Value"})
-					table.AppendBulk([][]string{
-						{"Created at", createdAt},
-						{"Deactivated at", deactivatedAt},
-						{"Id ", fmt.Sprintf("%b", id)},
-						{"State", string(state)},
-					})
-					table.Render()
-
-					if version.Data != nil {
-						fmt.Println("Data")
-						tableData := tablewriter.NewWriter(os.Stdout)
-						tableData.SetHeader([]string{"Key", "Value"})
-						for k, v := range *version.Data {
-							tableData.Append([]string{k, fmt.Sprintf("%v", v)})
-						}
-						tableData.Render()
-					}
-				}
+				renderListMetadataVersion(*resp)
 			}
 		},
 	}
 	return cmd
 }
 
-// TODO : Should we provide an easier command like
-// activate, deactivate or delete directly with the version and the path ?
 func secretVersionPutCmd() *cobra.Command {
 	var (
 		version uint32
@@ -156,21 +107,7 @@ func secretVersionPutCmd() *cobra.Command {
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
-				createdAt := resp.CreatedAt
-				deactivatedAt := utils.DerefOrDefault(resp.DeactivatedAt)
-				id := resp.Id
-				state := resp.State
-
-				fmt.Println("Metadata")
-				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Key", "Value"})
-				table.AppendBulk([][]string{
-					{"Created at", createdAt},
-					{"Deactivated at", deactivatedAt},
-					{"Id ", fmt.Sprintf("%b", id)},
-					{"State", string(state)},
-				})
-				table.Render()
+				renderMetadataVersion(*resp)
 			}
 		},
 	}
@@ -179,10 +116,70 @@ func secretVersionPutCmd() *cobra.Command {
 	return cmd
 }
 
+func stateFunction(version uint32, state types.SecretV2State) func(cmd *cobra.Command, args []string) {
+	return func(cmd *cobra.Command, args []string) {
+		if !cmd.Flag("version").Changed {
+			fmt.Fprintln(os.Stderr, "Missing flag version")
+			os.Exit(1)
+		}
+		body := types.PutSecretVersionV2Request{
+			State: state,
+		}
+
+		resp := exit.OnErr2(common.Client().PutSecretVersionV2(cmd.Context(), args[0], version, body))
+		if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
+			output.JsonPrint(resp)
+		} else {
+			renderMetadataVersion(*resp)
+		}
+	}
+}
+
+func secretVersionActiveCmd() *cobra.Command {
+	var (
+		version uint32
+	)
+	cmd := &cobra.Command{
+		Use:   "activate  PATH --version VERSION ",
+		Short: "Activate a secret version",
+		Args:  cobra.MinimumNArgs(1),
+		Run:   stateFunction(version, types.SecretV2StateActive),
+	}
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	return cmd
+}
+
+func secretVersionDeactivateCmd() *cobra.Command {
+	var (
+		version uint32
+	)
+	cmd := &cobra.Command{
+		Use:   "deactivate  PATH --version VERSION ",
+		Short: "Deactivate a secret version",
+		Args:  cobra.MinimumNArgs(1),
+		Run:   stateFunction(version, types.SecretV2StateDeactivated),
+	}
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	return cmd
+}
+
+func secretVersionDeleteCmd() *cobra.Command {
+	var (
+		version uint32
+	)
+	cmd := &cobra.Command{
+		Use:   "delete  PATH --version VERSION ",
+		Short: "Delete a secret version",
+		Args:  cobra.MinimumNArgs(1),
+		Run:   stateFunction(version, types.SecretV2StateDeleted),
+	}
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	return cmd
+}
+
 func secretVersionPostCmd() *cobra.Command {
 	var (
 		cas uint32
-		// TODO Add customMetadata ? How ?
 	)
 	cmd := &cobra.Command{
 		Use:   "create [FLAGS] PATH [DATA]",
@@ -207,21 +204,7 @@ func secretVersionPostCmd() *cobra.Command {
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
-				createdAt := resp.CreatedAt
-				deactivatedAt := utils.DerefOrDefault(resp.DeactivatedAt)
-				id := resp.Id
-				state := resp.State
-
-				fmt.Println("Metadata")
-				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Key", "Value"})
-				table.AppendBulk([][]string{
-					{"Created at", createdAt},
-					{"Deactivated at", deactivatedAt},
-					{"Id ", fmt.Sprintf("%b", id)},
-					{"State", string(state)},
-				})
-				table.Render()
+				renderMetadataVersion(*resp)
 			}
 		},
 	}
