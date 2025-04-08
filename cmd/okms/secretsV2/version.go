@@ -58,7 +58,7 @@ func secretVersionGetCmd() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	cmd.Flags().BoolVar(&includeData, "include-data", true, "Include the secret data. If not set they will be returned.")
 	return cmd
 }
@@ -66,7 +66,7 @@ func secretVersionGetCmd() *cobra.Command {
 func secretVersionListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get PATH --version VERSION ",
-		Short: "Retrieve a secret version",
+		Short: "Retrieve all secret versions",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			resp := exit.OnErr2(common.Client().ListSecretVersionV2(cmd.Context(), args[0]))
@@ -111,7 +111,7 @@ func secretVersionPutCmd() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	cmd.Flags().Var(&state, "state", "State of the secret version. Value must be in active|deactivated|deleted")
 	return cmd
 }
@@ -145,7 +145,7 @@ func secretVersionActiveCmd() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run:   stateFunction(version, types.SecretV2StateActive),
 	}
-	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	return cmd
 }
 
@@ -173,7 +173,7 @@ func secretVersionDeleteCmd() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run:   stateFunction(version, types.SecretV2StateDeleted),
 	}
-	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	return cmd
 }
 
