@@ -22,6 +22,7 @@ func CreateCommand(cust common.CustomizeFunc) *cobra.Command {
 		secretPutCmd(),
 		secretDeleteCmd(),
 		secretVersionCommand(),
+		secretPutCustomMetadataCmd(),
 	)
 
 	return kvCmd
