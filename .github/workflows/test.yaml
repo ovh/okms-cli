@@ -100,7 +100,7 @@ jobs:
         run: make -C tests
       - uses: actions/upload-artifact@v4
         with:
-          name: test_results
+          name: test_results_preprod
           path: |
             ./tests/out/test_results.html
             ./tests/out/venom.log
@@ -108,7 +108,7 @@ jobs:
         if: always()
       - uses: actions/upload-artifact@v4
         with:
-          name: coverage
+          name: coverage-preprod
           path: |
             ./tests/out/coverage.txt
             ./tests/out/coverage.html
