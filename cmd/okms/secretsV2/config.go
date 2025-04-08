@@ -39,7 +39,7 @@ func secretGetConfigCommand() *cobra.Command {
 			} else {
 				table := tablewriter.NewWriter(os.Stdout)
 				table.AppendBulk([][]string{
-					{"cas", fmt.Sprintf("%t", utils.DerefOrDefault(resp.CasRequired))},
+					{"Cas required", fmt.Sprintf("%t", utils.DerefOrDefault(resp.CasRequired))},
 					{"Deactivate version after", utils.DerefOrDefault(resp.DeactivateVersionAfter)},
 					{"Max. number of versions", fmt.Sprintf("%d", utils.DerefOrDefault(resp.MaxVersions))},
 				})
@@ -88,6 +88,6 @@ func secretUpdateConfigCommand() *cobra.Command {
 
 	cmd.Flags().BoolVar(&casRequired, "cas-required", false, "If true all keys will require the cas parameter to be set on all write requests.")
 	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 0, "The number of versions to keep per key. This value applies to all keys, but a key's metadata setting can overwrite this value. Once a key has more than the configured allowed versions, the oldest version will be permanently deleted. ")
-	cmd.Flags().StringVar(&deactivateVersionAfter, "deactivate-after", "0s", "If set, specifies the length of time before a version is deleted.\nDate format, see: https://developer.hashicorp.com/vault/docs/concepts/duration-format")
+	cmd.Flags().StringVar(&deactivateVersionAfter, "deactivate-after", "0s", "If set, specifies the length of time before a version is deactivated.\nDate format, see: https://developer.hashicorp.com/vault/docs/concepts/duration-format")
 	return cmd
 }
