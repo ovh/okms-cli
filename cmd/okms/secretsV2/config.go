@@ -39,7 +39,7 @@ func secretGetConfigCommand() *cobra.Command {
 			} else {
 				table := tablewriter.NewWriter(os.Stdout)
 				table.AppendBulk([][]string{
-					{"cas", fmt.Sprintf("%t", utils.DerefOrDefault(resp.CasRequired))},
+					{"Cas required", fmt.Sprintf("%t", utils.DerefOrDefault(resp.CasRequired))},
 					{"Deactivate version after", utils.DerefOrDefault(resp.DeactivateVersionAfter)},
 					{"Max. number of versions", fmt.Sprintf("%d", utils.DerefOrDefault(resp.MaxVersions))},
 				})
