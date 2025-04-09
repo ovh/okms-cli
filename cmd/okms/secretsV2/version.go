@@ -111,7 +111,7 @@ func secretVersionPutCmd() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	cmd.Flags().Var(&state, "state", "State of the secret version. Value must be in active|deactivated|deleted")
 	return cmd
 }
