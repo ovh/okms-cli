@@ -112,6 +112,7 @@ func secretGetCmd() *cobra.Command {
 			} else {
 				renderMetadata(utils.DerefOrDefault(resp.Path), utils.DerefOrDefault(resp.Metadata))
 				if includeData && resp.Version.Data != nil {
+					// Render metadata in addition ?
 					renderDataVersion(*resp.Version.Data)
 				}
 			}
