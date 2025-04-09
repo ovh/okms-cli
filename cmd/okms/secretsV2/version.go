@@ -173,7 +173,7 @@ func secretVersionDeleteCmd() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run:   stateFunction(version, types.SecretV2StateDeleted),
 	}
-	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	return cmd
 }
 
