@@ -18,7 +18,7 @@ func rowFromMetadata(meta types.SecretV2Metadata) []string {
 		fmt.Sprintf("%d", utils.DerefOrDefault(meta.MaxVersions)),
 		fmt.Sprintf("%d", utils.DerefOrDefault(meta.OldestVersion)),
 		utils.DerefOrDefault(meta.UpdatedAt),
-		fmt.Sprintf("%v", *meta.CustomMetadata)}
+		fmt.Sprintf("%v", utils.DerefOrDefault(meta.CustomMetadata))}
 }
 
 func renderList(secrets *types.ListSecretV2Response) {
@@ -42,7 +42,7 @@ func renderMetadata(path string, meta types.SecretV2Metadata) {
 }
 
 func renderListMetadataVersion(secrets []types.SecretV2Version) {
-	fmt.Println("Metadata")
+	fmt.Println("Version's specific metadata ")
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Id", "Created at", "Deactivated at", "State"})
 	for _, secret := range secrets {
