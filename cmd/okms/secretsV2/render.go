@@ -42,7 +42,7 @@ func renderMetadata(path string, meta types.SecretV2Metadata) {
 }
 
 func renderListMetadataVersion(secrets []types.SecretV2Version) {
-	fmt.Println("Metadata")
+	fmt.Println("Version's specific metadata ")
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Id", "Created at", "Deactivated at", "State"})
 	for _, secret := range secrets {
