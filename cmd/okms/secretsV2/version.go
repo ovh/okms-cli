@@ -58,7 +58,7 @@ func secretVersionGetCmd() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
+	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	cmd.Flags().BoolVar(&includeData, "include-data", true, "Include the secret data. If not set they will be returned.")
 	return cmd
 }
