@@ -50,6 +50,7 @@ func secretPostCmd() *cobra.Command {
 		casRequired            bool
 		maxVersions            uint32
 		deactivateVersionAfter string
+		customMetadata         map[string]string
 	)
 	cmd := &cobra.Command{
 		Use:   "create [FLAGS] PATH [DATA]",
@@ -58,9 +59,11 @@ func secretPostCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			in := io.Reader(os.Stdin)
 			body := types.PostSecretV2Request{
-				Metadata: &types.SecretV2MetadataShort{},
-				Path:     args[0],
-				Version:  types.SecretV2VersionShort{},
+				Metadata: &types.SecretV2MetadataShort{
+					CustomMetadata: utils.PtrTo(types.SecretV2CustomMetadata(customMetadata)),
+				},
+				Path:    args[0],
+				Version: types.SecretV2VersionShort{},
 			}
 
 			if cmd.Flag("cas-required").Changed {
@@ -93,6 +96,8 @@ func secretPostCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&casRequired, "cas-required", false, "The cas parameter will be required for all write requests if set to true")
 	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 10, "The number of versions to keep (10 default)")
 	cmd.Flags().StringVar(&deactivateVersionAfter, "deactivate-version-after", "", "Time duration before a version is deactivated")
+	cmd.Flags().StringToStringVar(&customMetadata, "custom-metadata", map[string]string{}, "Specifies arbitrary version-agnostic key=value metadata meant to describe a secret.\nThis can be specified multiple times to add multiple pieces of metadata.")
+
 	return cmd
 }
 
@@ -111,6 +116,7 @@ func secretGetCmd() *cobra.Command {
 				output.JsonPrint(resp)
 			} else {
 				renderMetadata(utils.DerefOrDefault(resp.Path), utils.DerefOrDefault(resp.Metadata))
+				renderMetadataVersion(utils.DerefOrDefault(resp.Version))
 				if includeData && resp.Version.Data != nil {
 					// Render metadata in addition ?
 					renderDataVersion(*resp.Version.Data)
@@ -130,6 +136,7 @@ func secretPutCmd() *cobra.Command {
 		maxVersions            uint32
 		deactivateVersionAfter string
 		cas                    uint32
+		customMetadata         map[string]string
 	)
 	cmd := &cobra.Command{
 		Use:   "update [FLAGS] PATH [DATA]",
@@ -138,8 +145,10 @@ func secretPutCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			in := io.Reader(os.Stdin)
 			body := types.PutSecretV2Request{
-				Metadata: &types.SecretV2MetadataShort{},
-				Version:  &types.SecretV2VersionShort{},
+				Metadata: &types.SecretV2MetadataShort{
+					CustomMetadata: utils.PtrTo(types.SecretV2CustomMetadata(customMetadata)),
+				},
+				Version: &types.SecretV2VersionShort{},
 			}
 			var c *uint32
 			if cmd.Flag("cas").Changed {
@@ -176,62 +185,7 @@ func secretPutCmd() *cobra.Command {
 	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 10, "The number of versions to keep (10 default)")
 	cmd.Flags().StringVar(&deactivateVersionAfter, "deactivate-version-after", "", "Time duration before a version is deactivated")
 	cmd.Flags().Uint32Var(&cas, "cas", 0, "Secret version number. Required if cas-required is set to true.")
-
-	return cmd
-}
-
-func secretPutCustomMetadataCmd() *cobra.Command {
-	var (
-		casRequired            bool
-		maxVersions            uint32
-		deactivateVersionAfter string
-		cas                    uint32
-	)
-	cmd := &cobra.Command{
-		Use:   "update-metadata [FLAGS] PATH [CUSTOM-DATA]",
-		Short: "Update a secret",
-		Args:  cobra.MinimumNArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
-			in := io.Reader(os.Stdin)
-			body := types.PutSecretV2Request{
-				Metadata: &types.SecretV2MetadataShort{},
-				Version:  &types.SecretV2VersionShort{},
-			}
-			var c *uint32
-			if cmd.Flag("cas").Changed {
-				c = &cas
-			}
-
-			if cmd.Flag("cas-required").Changed {
-				body.Metadata.CasRequired = &casRequired
-			}
-			if cmd.Flag("max-versions").Changed {
-				body.Metadata.MaxVersions = &maxVersions
-			}
-			if cmd.Flag("deactivate-version-after").Changed {
-				body.Metadata.DeactivateVersionAfter = &deactivateVersionAfter
-			}
-
-			customMetadata, err := restflags.ParseArgsCustomMetadata(in, args[1:])
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "Failed to parse K=V data:", err)
-				os.Exit(1)
-			}
-			body.Metadata.CustomMetadata = utils.PtrTo(types.SecretV2CustomMetadata(customMetadata))
-
-			resp := exit.OnErr2(common.Client().PutSecretV2(cmd.Context(), args[0], c, body))
-			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
-				output.JsonPrint(resp)
-			} else {
-				renderMetadata(utils.DerefOrDefault(resp.Path), utils.DerefOrDefault(resp.Metadata))
-			}
-		},
-	}
-
-	cmd.Flags().BoolVar(&casRequired, "cas-required", false, "The cas parameter will be required for all write requests if set to true")
-	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 10, "The number of versions to keep (10 default)")
-	cmd.Flags().StringVar(&deactivateVersionAfter, "deactivate-version-after", "", "Time duration before a version is deactivated")
-	cmd.Flags().Uint32Var(&cas, "cas", 0, "Secret version number. Required if cas-required is set to true.")
+	cmd.Flags().StringToStringVar(&customMetadata, "custom-metadata", map[string]string{}, "Specifies arbitrary version-agnostic key=value metadata meant to describe a secret.\nThis can be specified multiple times to add multiple pieces of metadata.")
 
 	return cmd
 }

@@ -65,9 +65,9 @@ func secretVersionGetCmd() *cobra.Command {
 
 func secretVersionListCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get PATH --version VERSION ",
+		Use:   "list PATH",
 		Short: "Retrieve all secret versions",
-		Args:  cobra.MinimumNArgs(2),
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			resp := exit.OnErr2(common.Client().ListSecretVersionV2(cmd.Context(), args[0]))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
