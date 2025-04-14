@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - uses: ./.github/actions/setup-build-env
-      - uses: ko-build/setup-ko@v0.8
+      - uses: ko-build/setup-ko@v0.9
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to Container Registry
