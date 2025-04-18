@@ -15,7 +15,7 @@ jobs:
   build:
     uses: ./.github/workflows/build.yaml
     secrets: inherit
-    
+
   integration-tests:
     needs: build
     uses: ./.github/workflows/test.yaml
@@ -40,7 +40,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: KO_DOCKER_REPO=ghcr.io/ovh/okms-cli ko build --tags ${{ github.ref_name }},latest --push --bare --platform=linux/arm64,linux/amd64 ./cmd/okms
-  
+
   goreleaser:
     needs: integration-tests
     runs-on: ubuntu-latest
@@ -62,7 +62,7 @@ jobs:
           args: --verbose --current
         env:
           OUTPUT: tmp.CHANGELOG.md
-      - uses: goreleaser/goreleaser-action@v6
+      - uses: goreleaser/goreleaser-action@7
         with:
           # either 'goreleaser' (default) or 'goreleaser-pro':
           distribution: goreleaser
@@ -70,5 +70,3 @@ jobs:
           args: release --clean --release-notes tmp.CHANGELOG.md -f .github/goreleaser.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    

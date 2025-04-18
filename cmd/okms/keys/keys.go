@@ -85,7 +85,7 @@ func newAddServiceKeyCmd() *cobra.Command {
 		keyUsage restflags.KeyUsageList
 		keySize  int32
 		//lint:ignore ST1023 setting default
-		keySpec    restflags.KeyType = restflags.OCTETSTREAM
+		keySpec    = restflags.OCTETSTREAM
 		curveType  restflags.CurveType
 		keyContext string
 	)
@@ -329,7 +329,7 @@ func newDeleteKeyCmd() *cobra.Command {
 
 func newDeactivateKeyCmd() *cobra.Command {
 	//lint:ignore ST1023 for readability
-	var revocationReason restflags.RevocationReason = restflags.Unspecified
+	var revocationReason = restflags.Unspecified
 	cmd := &cobra.Command{
 		Use:   "deactivate KEY-ID [KEY-ID...]",
 		Args:  cobra.MinimumNArgs(1),

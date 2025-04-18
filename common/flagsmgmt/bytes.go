@@ -92,8 +92,8 @@ func WriterFromArg(value string) io.WriteCloser {
 }
 
 func writerFromArg(value string) (io.WriteCloser, error) {
-	switch {
-	case value == "-":
+	switch value {
+	case "-":
 		if stdoutUsed.Swap(true) {
 			return nil, errors.New("Cannot write to stdout more than once")
 		}

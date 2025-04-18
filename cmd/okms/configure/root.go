@@ -43,12 +43,13 @@ func CreateCommand() *cobra.Command {
 
 func Run(profile string) {
 	choice := exit.OnErr2(pterm.DefaultInteractiveSelect.WithOptions([]string{"HTTP", "KMIP"}).Show("Select a protocol to configure"))
-	if choice == "HTTP" {
+	switch choice {
+	case "HTTP":
 		config.ReadUserInput("CA file", "http.ca", profile, config.ValidateFileExists.AllowEmpty())
 		config.ReadUserInput("Certificate file", "http.auth.cert", profile, config.ValidateFileExists)
 		config.ReadUserInput("Private key file", "http.auth.key", profile, config.ValidateFileExists)
 		config.ReadUserInput("Endpoint", "http.endpoint", profile, config.ValidateURL)
-	} else if choice == "KMIP" {
+	case "KMIP":
 		config.ReadUserInput("CA file", "kmip.ca", profile, config.ValidateFileExists.AllowEmpty())
 		config.ReadUserInput("Certificate file", "kmip.auth.cert", profile, config.ValidateFileExists)
 		config.ReadUserInput("Private key file", "kmip.auth.key", profile, config.ValidateFileExists)
