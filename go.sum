@@ -102,8 +102,8 @@ github.com/oapi-codegen/runtime v1.1.1 h1:EXLHh0DXIJnWhdRPN2w4MXAzFyE4CskzhNLUmt
 github.com/oapi-codegen/runtime v1.1.1/go.mod h1:SK9X900oXmPWilYR5/WKPzt3Kqxn/uS/+lbpREv+eCg=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
-github.com/ovh/kmip-go v0.3.3 h1:/dWFCRug8wuBI7hZ4J2ZpFy5U00Qtesdwv883pcDDvM=
-github.com/ovh/kmip-go v0.3.3/go.mod h1:ATNCndyULLBcEt7jp4j8cR4ko4gnH37KBA9ZPeNUuKk=
+github.com/ovh/kmip-go v0.3.4 h1:nhT2o1EccYievcLa8iVVgUBiQpW2t+rO8is0Iu7H8VM=
+github.com/ovh/kmip-go v0.3.4/go.mod h1:ATNCndyULLBcEt7jp4j8cR4ko4gnH37KBA9ZPeNUuKk=
 github.com/ovh/okms-sdk-go v0.4.3-0.20250326103329-2a75059822d8 h1:Xj2clTOAYD2dQSmHVBoT0SDXK+FHoZqgfx/5aloH7wQ=
 github.com/ovh/okms-sdk-go v0.4.3-0.20250326103329-2a75059822d8/go.mod h1:qHignKksvZNNywbHvwJCmy5C6Ro1ZZgNKu2PZO7XTJs=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
