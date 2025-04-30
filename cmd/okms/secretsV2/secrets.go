@@ -111,7 +111,12 @@ func secretGetCmd() *cobra.Command {
 		Short: "Retrieve a secret",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			resp := exit.OnErr2(common.Client().GetSecretV2(cmd.Context(), args[0], &version, &includeData))
+			var versionPtr *uint32
+			if cmd.Flag("version").Changed {
+				versionPtr = &version
+			}
+
+			resp := exit.OnErr2(common.Client().GetSecretV2(cmd.Context(), args[0], versionPtr, &includeData))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
