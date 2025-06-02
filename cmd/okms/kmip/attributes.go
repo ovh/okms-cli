@@ -7,6 +7,8 @@ import (
 	"regexp"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/renderer"
+	"github.com/olekukonko/tablewriter/tw"
 	"github.com/ovh/kmip-go"
 	"github.com/ovh/kmip-go/ttlv"
 	"github.com/ovh/okms-cli/common/flagsmgmt"
@@ -21,11 +23,18 @@ var (
 )
 
 func printAttributeTable(attributes []kmip.Attribute) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetAutoWrapText(false)
-	table.SetHeader([]string{"Name", "Value"})
-	table.SetRowLine(true)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	opts := tablewriter.WithRenderer(renderer.NewBlueprint(tw.Rendition{
+		Borders: tw.Border{Left: tw.On, Right: tw.On, Top: tw.On, Bottom: tw.On},
+		Settings: tw.Settings{
+			Separators: tw.Separators{ShowHeader: tw.On, BetweenRows: tw.On, BetweenColumns: tw.On},
+		},
+	}))
+	table := tablewriter.NewTable(os.Stdout, opts).Configure(func(c *tablewriter.Config) {
+		c.Header.Formatting.AutoWrap = tw.WrapNormal
+		c.Header.Alignment.Global = tw.AlignLeft
+		c.Row.Formatting.AutoWrap = tw.WrapNormal
+		c.Row.Alignment.Global = tw.AlignLeft
+	})
 
 	enc := ttlv.NewTextEncoder()
 	for _, attr := range attributes {
@@ -42,10 +51,10 @@ func printAttributeTable(attributes []kmip.Attribute) {
 		if idx := attr.AttributeIndex; idx != nil && *idx > 0 {
 			name = fmt.Sprintf("%s [%d]", name, *idx)
 		}
-		table.Append([]string{name, string(txt)})
+		exit.OnErr(table.Append([]string{name, string(txt)}))
 	}
 
-	table.Render()
+	exit.OnErr(table.Render())
 }
 
 func getAttributesCommand() *cobra.Command {

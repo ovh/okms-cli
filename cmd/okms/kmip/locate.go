@@ -43,11 +43,11 @@ func locateCommand() *cobra.Command {
 				output.JsonPrint(locateResp)
 			} else {
 				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Id"})
+				table.Header([]string{"Id"})
 				for _, id := range locateResp.UniqueIdentifier {
-					table.Append([]string{id})
+					exit.OnErr(table.Append([]string{id}))
 				}
-				table.Render()
+				exit.OnErr(table.Render())
 			}
 			return
 		}
@@ -68,7 +68,7 @@ func locateCommand() *cobra.Command {
 
 func printObjectTable(objects []*payloads.GetAttributesResponsePayload) {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "TYPE", "NAME", "STATE", "ALGORITHM", "SIZE"})
+	table.Header([]string{"ID", "TYPE", "NAME", "STATE", "ALGORITHM", "SIZE"})
 	for _, attr := range objects {
 		var row [6]string
 		row[0] = attr.UniqueIdentifier
@@ -89,7 +89,7 @@ func printObjectTable(objects []*payloads.GetAttributesResponsePayload) {
 				row[5] = strconv.Itoa(int(v.AttributeValue.(int32)))
 			}
 		}
-		table.Append(row[:])
+		exit.OnErr(table.Append(row[:]))
 	}
-	table.Render()
+	exit.OnErr(table.Render())
 }

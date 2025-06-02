@@ -63,8 +63,8 @@ func kvGetMetadataCommand() *cobra.Command {
 
 				fmt.Println("Metadata")
 				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Key", "Value"})
-				table.AppendBulk([][]string{
+				table.Header([]string{"Key", "Value"})
+				exit.OnErr(table.Bulk([][]string{
 					{"Created at", createdAt},
 					{"Custom metadata", customMetadata},
 					{"Cas required", fmt.Sprintf("%t", casRequired)},
@@ -73,9 +73,8 @@ func kvGetMetadataCommand() *cobra.Command {
 					{"Oldest version", oldestVersions},
 					{"Delete version after", deleteVersionAfter},
 					{"Updated time", updatedTime},
-				})
-				table.Render()
-
+				}))
+				exit.OnErr(table.Render())
 				if resp.Data.Versions != nil {
 					// Sort the keys in the Versions map
 					keys := make([]string, 0, len(*resp.Data.Versions))
@@ -93,13 +92,13 @@ func kvGetMetadataCommand() *cobra.Command {
 
 						fmt.Printf("=== Version %s ===\n", k)
 						table := tablewriter.NewWriter(os.Stdout)
-						table.SetHeader([]string{"Key", "Value"})
-						table.AppendBulk([][]string{
+						table.Header([]string{"Key", "Value"})
+						exit.OnErr(table.Bulk([][]string{
 							{"Created at", versionCreatedAt},
 							{"Deletion time", versionDeletionTime},
 							{"Deletion time", fmt.Sprintf("%t", versionDestroyed)},
-						})
-						table.Render()
+						}))
+						exit.OnErr(table.Render())
 					}
 				}
 			}

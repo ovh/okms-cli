@@ -56,10 +56,10 @@ func newListServiceKeysCmd() *cobra.Command {
 				output.JsonPrint(keys)
 			} else {
 				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"ID", "Name", "Type", "State", "Created At"})
+				table.Header([]string{"ID", "Name", "Type", "State", "Created At"})
 				for _, key := range keys.ObjectsList {
 					keyAttr := getCommonKeyAttributes(&key)
-					table.Append([]string{
+					exit.OnErr(table.Append([]string{
 						key.Id.String(),
 						key.Name,
 						string(key.Type),
@@ -68,9 +68,9 @@ func newListServiceKeysCmd() *cobra.Command {
 						// strconv.Itoa(int(*key.KeySize)),
 						// strings.Join(*key.KeyOps, ", "),
 						// strconv.Itoa(int(*key.LatestVersion)),
-					})
+					}))
 				}
-				table.Render()
+				exit.OnErr(table.Render())
 			}
 		},
 	}
@@ -272,7 +272,7 @@ func printServiceKey(resp *types.GetServiceKeyResponse) {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.AppendBulk([][]string{
+	exit.OnErr(table.Bulk([][]string{
 		{"Id", id.String()},
 		{"Name", name},
 		{"State", string(keyAttr.State)},
@@ -281,17 +281,17 @@ func printServiceKey(resp *types.GetServiceKeyResponse) {
 		{"Curve", curve},
 		{"Usage", usage},
 		{"Created at", keyAttr.CreatedAt.Format(time.DateTime)},
-	})
+	}))
 	if keyAttr.ActivatedAt != nil {
-		table.Append([]string{"Activated at", keyAttr.ActivatedAt.Format(time.DateTime)})
+		exit.OnErr(table.Append([]string{"Activated at", keyAttr.ActivatedAt.Format(time.DateTime)}))
 	}
 	if keyAttr.DeactivatedAt != nil {
-		table.Append([]string{"Deactivated at", keyAttr.DeactivatedAt.Format(time.DateTime)})
+		exit.OnErr(table.Append([]string{"Deactivated at", keyAttr.DeactivatedAt.Format(time.DateTime)}))
 	}
 	if keyAttr.CompromisedAt != nil {
-		table.Append([]string{"Compromised at", keyAttr.CompromisedAt.Format(time.DateTime)})
+		exit.OnErr(table.Append([]string{"Compromised at", keyAttr.CompromisedAt.Format(time.DateTime)}))
 	}
-	table.Render()
+	exit.OnErr(table.Render())
 }
 
 func newDeleteKeyCmd() *cobra.Command {

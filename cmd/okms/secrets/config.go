@@ -38,12 +38,12 @@ func kvReadConfigCommand() *cobra.Command {
 				output.JsonPrint(resp)
 			} else {
 				table := tablewriter.NewWriter(os.Stdout)
-				table.AppendBulk([][]string{
+				exit.OnErr(table.Bulk([][]string{
 					{"cas", fmt.Sprintf("%t", utils.DerefOrDefault(resp.Data.CasRequired))},
 					{"Delete version after", utils.DerefOrDefault(resp.Data.DeleteVersionAfter)},
 					{"Max. number of versions", fmt.Sprintf("%d", utils.DerefOrDefault(resp.Data.MaxVersions))},
-				})
-				table.Render()
+				}))
+				exit.OnErr(table.Render())
 			}
 		},
 	}
