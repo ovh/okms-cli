@@ -71,8 +71,8 @@ DATA-KEY can be either plain text, a '-' to read from stdin, or a filename prefi
 				output.JsonPrint(plaintext)
 			} else {
 				table := tablewriter.NewWriter(os.Stdout)
-				table.Append([]string{"Plaintext Key", base64.StdEncoding.EncodeToString(plaintext)})
-				table.Render()
+				exit.OnErr(table.Append([]string{"Plaintext Key", base64.StdEncoding.EncodeToString(plaintext)}))
+				exit.OnErr(table.Render())
 			}
 		},
 	}

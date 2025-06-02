@@ -45,8 +45,8 @@ func run(cmd *cobra.Command, args []string) {
 	} else {
 		r := utils.DerefOrDefault(resp.Bytes)
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{fmt.Sprintf("Value (length: %d)", length)})
-		table.Append([]string{r})
-		table.Render()
+		table.Header([]string{fmt.Sprintf("Value (length: %d)", length)})
+		exit.OnErr(table.Append([]string{r}))
+		exit.OnErr(table.Render())
 	}
 }

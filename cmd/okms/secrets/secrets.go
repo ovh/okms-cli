@@ -41,14 +41,14 @@ func kvGetCmd() *cobra.Command {
 				if resp.Data.Data != nil {
 					fmt.Println("Data")
 					table := tablewriter.NewWriter(os.Stdout)
-					table.SetHeader([]string{"Key", "Value"})
+					table.Header([]string{"Key", "Value"})
 					kvs, ok := (*resp.Data.Data).(map[string]any)
 					if ok {
 						for k, v := range kvs {
-							table.Append([]string{k, fmt.Sprintf("%v", v)})
+							exit.OnErr(table.Append([]string{k, fmt.Sprintf("%v", v)}))
 						}
 					}
-					table.Render()
+					exit.OnErr(table.Render())
 				}
 			}
 		},
@@ -236,14 +236,14 @@ func kvSubkeysCmd() *cobra.Command {
 				if resp.Data.Subkeys != nil {
 					fmt.Println("Subkeys")
 					table := tablewriter.NewWriter(os.Stdout)
-					table.SetHeader([]string{"Key", "Value"})
+					table.Header([]string{"Key", "Value"})
 					kvs, ok := (*resp.Data.Subkeys).(map[string]any)
 					if ok {
 						for k, v := range kvs {
-							table.Append([]string{k, fmt.Sprintf("%v", v)})
+							exit.OnErr(table.Append([]string{k, fmt.Sprintf("%v", v)}))
 						}
 					}
-					table.Render()
+					exit.OnErr(table.Render())
 				}
 			}
 		},
@@ -273,13 +273,13 @@ func renderSecretMetadataTable(data *types.SecretVersionMetadata) {
 
 	fmt.Println("Metadata")
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Key", "Value"})
-	table.AppendBulk([][]string{
+	table.Header([]string{"Key", "Value"})
+	exit.OnErr(table.Bulk([][]string{
 		{"Created at", createdAt},
 		{"Custom metadata", customMetadata},
 		{"Deletion time", deletionTime},
 		{"Destroyed", fmt.Sprintf("%t", destroyed)},
 		{"Version", version},
-	})
-	table.Render()
+	}))
+	exit.OnErr(table.Render())
 }
