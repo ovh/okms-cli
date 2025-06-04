@@ -59,7 +59,7 @@ func secretVersionGetCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
-	cmd.Flags().BoolVar(&includeData, "include-data", true, "Include the secret data. If not set they will be returned.")
+	cmd.Flags().BoolVar(&includeData, "include-data", false, "Include the secret data. If not set they will not be returned.")
 	return cmd
 }
 
@@ -182,7 +182,7 @@ func secretVersionPostCmd() *cobra.Command {
 		cas uint32
 	)
 	cmd := &cobra.Command{
-		Use:   "create [FLAGS] PATH [DATA]",
+		Use:   "create PATH [DATA]",
 		Short: "Create a secret version",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
