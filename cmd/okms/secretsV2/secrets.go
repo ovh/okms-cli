@@ -53,7 +53,7 @@ func secretPostCmd() *cobra.Command {
 		customMetadata         map[string]string
 	)
 	cmd := &cobra.Command{
-		Use:   "create [FLAGS] PATH [DATA]",
+		Use:   "create PATH [DATA]",
 		Short: "Create a secret",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -84,7 +84,7 @@ func secretPostCmd() *cobra.Command {
 			body.Version.Data = &data
 
 			// TODO Is CAS really required for PostSecretV2 since it create the secret
-			resp := exit.OnErr2(common.Client().PostSecretV2(cmd.Context(), utils.PtrTo(uint32(0)), body))
+			resp := exit.OnErr2(common.Client().PostSecretV2(cmd.Context(), body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -131,7 +131,7 @@ func secretGetCmd() *cobra.Command {
 	}
 
 	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
-	cmd.Flags().BoolVar(&includeData, "include-data", true, "Include the secret data. If not set they will be returned.")
+	cmd.Flags().BoolVar(&includeData, "include-data", false, "Include the secret data. If not set they will not be returned.")
 	return cmd
 }
 
@@ -144,16 +144,15 @@ func secretPutCmd() *cobra.Command {
 		customMetadata         map[string]string
 	)
 	cmd := &cobra.Command{
-		Use:   "update [FLAGS] PATH [DATA]",
+		Use:   "update  PATH [DATA]",
 		Short: "Update a secret",
-		Args:  cobra.MinimumNArgs(2),
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			in := io.Reader(os.Stdin)
 			body := types.PutSecretV2Request{
 				Metadata: &types.SecretV2MetadataShort{
 					CustomMetadata: utils.PtrTo(types.SecretV2CustomMetadata(customMetadata)),
 				},
-				Version: &types.SecretV2VersionShort{},
 			}
 			var c *uint32
 			if cmd.Flag("cas").Changed {
@@ -175,7 +174,9 @@ func secretPutCmd() *cobra.Command {
 				fmt.Fprintln(os.Stderr, "Failed to parse K=V data:", err)
 				os.Exit(1)
 			}
-			body.Version.Data = &data
+			if data != nil {
+				body.Version = &types.SecretV2VersionShort{Data: &data}
+			}
 
 			resp := exit.OnErr2(common.Client().PutSecretV2(cmd.Context(), args[0], c, body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
