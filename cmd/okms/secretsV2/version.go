@@ -59,7 +59,7 @@ func secretVersionGetCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
-	cmd.Flags().BoolVar(&includeData, "include-data", true, "Include the secret data. If not set they will be returned.")
+	cmd.Flags().BoolVar(&includeData, "include-data", false, "Include the secret data. If not set they will not be returned.")
 	return cmd
 }
 
@@ -143,7 +143,13 @@ func secretVersionActiveCmd() *cobra.Command {
 		Use:   "activate  PATH --version VERSION ",
 		Short: "Activate a secret version",
 		Args:  cobra.MinimumNArgs(1),
-		Run:   stateFunction(version, types.SecretV2StateActive),
+		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flag("version").Changed {
+				fmt.Fprintln(os.Stderr, "Missing flag version")
+				os.Exit(1)
+			}
+			stateFunction(version, types.SecretV2StateActive)
+		},
 	}
 	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	return cmd
@@ -157,7 +163,13 @@ func secretVersionDeactivateCmd() *cobra.Command {
 		Use:   "deactivate  PATH --version VERSION ",
 		Short: "Deactivate a secret version",
 		Args:  cobra.MinimumNArgs(1),
-		Run:   stateFunction(version, types.SecretV2StateDeactivated),
+		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flag("version").Changed {
+				fmt.Fprintln(os.Stderr, "Missing flag version")
+				os.Exit(1)
+			}
+			stateFunction(version, types.SecretV2StateDeactivated)
+		},
 	}
 	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
 	return cmd
@@ -171,7 +183,13 @@ func secretVersionDeleteCmd() *cobra.Command {
 		Use:   "delete  PATH --version VERSION ",
 		Short: "Delete a secret version",
 		Args:  cobra.MinimumNArgs(1),
-		Run:   stateFunction(version, types.SecretV2StateDeleted),
+		Run: func(cmd *cobra.Command, args []string) {
+			if !cmd.Flag("version").Changed {
+				fmt.Fprintln(os.Stderr, "Missing flag version")
+				os.Exit(1)
+			}
+			stateFunction(version, types.SecretV2StateDeleted)
+		},
 	}
 	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	return cmd
@@ -182,7 +200,7 @@ func secretVersionPostCmd() *cobra.Command {
 		cas uint32
 	)
 	cmd := &cobra.Command{
-		Use:   "create [FLAGS] PATH [DATA]",
+		Use:   "create PATH [DATA]",
 		Short: "Create a secret version",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
