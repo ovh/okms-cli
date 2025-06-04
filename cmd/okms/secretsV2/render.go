@@ -6,6 +6,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/ovh/okms-cli/common/utils"
+	"github.com/ovh/okms-cli/common/utils/exit"
 	"github.com/ovh/okms-sdk-go/types"
 )
 
@@ -24,31 +25,31 @@ func rowFromMetadata(meta types.SecretV2Metadata) []string {
 func renderList(secrets *types.ListSecretV2Response) {
 	tableMetadata := tablewriter.NewWriter(os.Stdout)
 	fmt.Printf("Metadata (Total count : %d):\n", utils.DerefOrDefault(secrets.TotalCount))
-	tableMetadata.SetHeader([]string{"Path", "Cas Required", "Created at", "Current Version", "Deactivate Version After", "Max Versions", "Oldest Version", "Updated at", "Custom metadata"})
+	tableMetadata.Header([]string{"Path", "Cas Required", "Created at", "Current Version", "Deactivate Version After", "Max Versions", "Oldest Version", "Updated at", "Custom metadata"})
 	for _, secret := range *secrets.Results {
-		tableMetadata.Append(append([]string{*secret.Path}, rowFromMetadata(*secret.Metadata)...))
+		exit.OnErr(tableMetadata.Append(append([]string{*secret.Path}, rowFromMetadata(*secret.Metadata)...)))
 	}
-	tableMetadata.Render()
+	exit.OnErr(tableMetadata.Render())
 }
 
 func renderMetadata(path string, meta types.SecretV2Metadata) {
 	fmt.Printf("Metadata: %v\n", path)
 	table := tablewriter.NewWriter(os.Stdout)
 
-	table.SetHeader([]string{"Cas Required", "Created at", "Current Version", "Deactivate Version After", "Max Versions", "Oldest Version", "Updated at", "Custom metadata"})
-	table.Append(rowFromMetadata(meta))
+	table.Header([]string{"Cas Required", "Created at", "Current Version", "Deactivate Version After", "Max Versions", "Oldest Version", "Updated at", "Custom metadata"})
+	exit.OnErr(table.Append(rowFromMetadata(meta)))
 
-	table.Render()
+	exit.OnErr(table.Render())
 }
 
 func renderListMetadataVersion(secrets []types.SecretV2Version) {
 	fmt.Println("Version's specific metadata ")
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Id", "Created at", "Deactivated at", "State"})
+	table.Header([]string{"Id", "Created at", "Deactivated at", "State"})
 	for _, secret := range secrets {
-		table.Append([]string{fmt.Sprintf("%b", secret.Id), secret.CreatedAt, utils.DerefOrDefault(secret.DeactivatedAt), string(secret.State)})
+		exit.OnErr(table.Append([]string{fmt.Sprintf("%d", secret.Id), secret.CreatedAt, utils.DerefOrDefault(secret.DeactivatedAt), string(secret.State)}))
 	}
-	table.Render()
+	exit.OnErr(table.Render())
 }
 
 func renderMetadataVersion(secret types.SecretV2Version) {
@@ -59,9 +60,9 @@ func renderMetadataVersion(secret types.SecretV2Version) {
 func renderDataVersion(data map[string]interface{}) {
 	fmt.Println("Data")
 	tableData := tablewriter.NewWriter(os.Stdout)
-	tableData.SetHeader([]string{"Key", "Value"})
+	tableData.Header([]string{"Key", "Value"})
 	for k, v := range data {
-		tableData.Append([]string{k, fmt.Sprintf("%v", v)})
+		exit.OnErr(tableData.Append([]string{k, fmt.Sprintf("%v", v)}))
 	}
-	tableData.Render()
+	exit.OnErr(tableData.Render())
 }
