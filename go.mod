@@ -10,7 +10,7 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.0
 	github.com/knadh/koanf/v2 v2.2.1
 	github.com/olekukonko/tablewriter v1.0.7
-	github.com/ovh/kmip-go v0.3.4
+	github.com/ovh/kmip-go v0.4.0
 	github.com/ovh/okms-sdk-go v0.4.3-0.20250326103329-2a75059822d8
 	github.com/pterm/pterm v0.12.81
 	github.com/schollz/progressbar/v3 v3.18.0
