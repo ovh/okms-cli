@@ -1,6 +1,6 @@
 ## okms kmip rekey
 
-Rekey a symmetric key object
+Rekey a symmetric key or a key-pair
 
 ```
 okms kmip rekey ID [flags]
