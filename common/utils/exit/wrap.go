@@ -6,6 +6,10 @@ import (
 	"runtime/debug"
 )
 
+func Now(msg string, args ...any) {
+	OnErr(fmt.Errorf(msg, args...))
+}
+
 func OnErr(err error) {
 	if err == nil {
 		return
