@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/url"
 	"os"
+
+	"github.com/ovh/okms-cli/internal/utils"
 )
 
 type Validator func(string) error
@@ -30,6 +32,10 @@ var (
 		return nil
 	}
 	ValidateFileExists Validator = func(s string) error {
+		s, err := utils.ExpandTilde(s)
+		if err != nil {
+			return err
+		}
 		inf, err := os.Stat(s)
 		if err != nil {
 			return err
