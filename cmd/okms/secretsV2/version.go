@@ -116,7 +116,7 @@ func secretVersionPutCmd() *cobra.Command {
 	return cmd
 }
 
-func stateFunction(version uint32, state types.SecretV2State) func(cmd *cobra.Command, args []string) {
+func stateFunction(version *uint32, state types.SecretV2State) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		if !cmd.Flag("version").Changed {
 			fmt.Fprintln(os.Stderr, "Missing flag version")
@@ -126,7 +126,7 @@ func stateFunction(version uint32, state types.SecretV2State) func(cmd *cobra.Co
 			State: state,
 		}
 
-		resp := exit.OnErr2(common.Client().PutSecretVersionV2(cmd.Context(), args[0], version, body))
+		resp := exit.OnErr2(common.Client().PutSecretVersionV2(cmd.Context(), args[0], *version, body))
 		if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 			output.JsonPrint(resp)
 		} else {
@@ -143,7 +143,7 @@ func secretVersionActiveCmd() *cobra.Command {
 		Use:   "activate  PATH --version VERSION ",
 		Short: "Activate a secret version",
 		Args:  cobra.MinimumNArgs(1),
-		Run:   stateFunction(version, types.SecretV2StateActive),
+		Run:   stateFunction(&version, types.SecretV2StateActive),
 	}
 	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	return cmd
@@ -157,7 +157,7 @@ func secretVersionDeactivateCmd() *cobra.Command {
 		Use:   "deactivate  PATH --version VERSION ",
 		Short: "Deactivate a secret version",
 		Args:  cobra.MinimumNArgs(1),
-		Run:   stateFunction(version, types.SecretV2StateDeactivated),
+		Run:   stateFunction(&version, types.SecretV2StateDeactivated),
 	}
 	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version. If not set, the latest version will be returned.")
 	return cmd
@@ -171,7 +171,7 @@ func secretVersionDeleteCmd() *cobra.Command {
 		Use:   "delete  PATH --version VERSION ",
 		Short: "Delete a secret version",
 		Args:  cobra.MinimumNArgs(1),
-		Run:   stateFunction(version, types.SecretV2StateDeleted),
+		Run:   stateFunction(&version, types.SecretV2StateDeleted),
 	}
 	cmd.Flags().Uint32Var(&version, "version", 0, "Secret version.")
 	return cmd
