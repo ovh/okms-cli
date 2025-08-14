@@ -16,8 +16,6 @@ import (
 )
 
 func secretListCmd() *cobra.Command {
-	// TODO: Fix
-	// It generate a 500 in the CCM currently
 	var (
 		page_size   uint32
 		page_number uint32
@@ -53,9 +51,10 @@ func secretPostCmd() *cobra.Command {
 		customMetadata         map[string]string
 	)
 	cmd := &cobra.Command{
-		Use:   "create PATH [DATA]",
-		Short: "Create a secret",
-		Args:  cobra.MinimumNArgs(2),
+		Use:     "create PATH DATA...",
+		Short:   "Create a secret. Data is in key value format, a json file can also be used by adding the prefix '@' (exp: bar=baz foo=@data.json)",
+		Args:    cobra.MinimumNArgs(2),
+		Example: "create foo/bar zip=zap foo=@data.json | create foo/bar @data.json",
 		Run: func(cmd *cobra.Command, args []string) {
 			in := io.Reader(os.Stdin)
 			body := types.PostSecretV2Request{
@@ -144,9 +143,10 @@ func secretPutCmd() *cobra.Command {
 		customMetadata         map[string]string
 	)
 	cmd := &cobra.Command{
-		Use:   "update  PATH [DATA]",
-		Short: "Update a secret",
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "update PATH [DATA]...",
+		Short:   "Update a secret",
+		Args:    cobra.MinimumNArgs(1),
+		Example: "update foo/bar zip=zap bar=@data.json | update --cas-required foo/bar @data.json",
 		Run: func(cmd *cobra.Command, args []string) {
 			in := io.Reader(os.Stdin)
 			body := types.PutSecretV2Request{
