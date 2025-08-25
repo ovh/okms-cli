@@ -12,7 +12,7 @@ type SymmetricAlg kmip.CryptographicAlgorithm
 
 const (
 	AES      SymmetricAlg = SymmetricAlg(kmip.CryptographicAlgorithmAES)
-	TDES     SymmetricAlg = SymmetricAlg(kmip.CryptographicAlgorithmTDES)
+	TDES     SymmetricAlg = SymmetricAlg(kmip.CryptographicAlgorithm3DES)
 	SKIPJACK SymmetricAlg = SymmetricAlg(kmip.CryptographicAlgorithmSKIPJACK)
 )
 
@@ -24,7 +24,7 @@ func (e *SymmetricAlg) Set(v string) error {
 	switch strings.ToLower(v) {
 	case "aes":
 		*e = AES
-	case "tdes":
+	case "tdes", "3des":
 		*e = TDES
 	case "skipjack":
 		*e = SKIPJACK
