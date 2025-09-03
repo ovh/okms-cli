@@ -64,9 +64,10 @@ func kvPutCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "put PATH [DATA]",
-		Short: "Writes the data to the given path in the key-value store. (DATA format: bar=baz)",
-		Args:  cobra.MinimumNArgs(2),
+		Use:     "put PATH DATA...",
+		Short:   "Writes the data to the given path in the key-value store. (DATA format: bar=baz foo=@data.json)",
+		Args:    cobra.MinimumNArgs(2),
+		Example: "put foo/bar zip=zap foo=@data.json | put foo/bar @data.json",
 		Run: func(cmd *cobra.Command, args []string) {
 			in := io.Reader(os.Stdin)
 
@@ -108,9 +109,10 @@ func kvPatchCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "patch PATH [DATA]",
-		Short: "Writes the data to the given path in the key-value store. (DATA format: bar=baz)",
-		Args:  cobra.MinimumNArgs(2),
+		Use:     "patch PATH DATA...",
+		Short:   "Writes the data to the given path in the key-value store. (DATA format: bar=baz foo=@data.json)",
+		Args:    cobra.MinimumNArgs(2),
+		Example: "patch foo/bar zip=zap foo=@data.json | patch foo/bar @data.json",
 		Run: func(cmd *cobra.Command, args []string) {
 			in := io.Reader(os.Stdin)
 
