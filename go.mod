@@ -48,7 +48,7 @@ require (
 	github.com/oapi-codegen/runtime v1.1.2 // indirect
 	github.com/olekukonko/cat v0.0.0-20250808191157-46fba99501f3 // indirect
 	github.com/olekukonko/errors v1.1.0 // indirect
-	github.com/olekukonko/ll v0.1.0 // indirect
+	github.com/olekukonko/ll v0.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
