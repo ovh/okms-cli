@@ -24,9 +24,8 @@ func rowFromMetadata(meta types.SecretV2Metadata) []string {
 
 func renderList(secrets *types.ListSecretV2Response) {
 	tableMetadata := tablewriter.NewWriter(os.Stdout)
-	fmt.Printf("Metadata (Total count : %d):\n", utils.DerefOrDefault(secrets.TotalCount))
 	tableMetadata.Header([]string{"Path", "Cas Required", "Created at", "Current Version", "Deactivate Version After", "Max Versions", "Oldest Version", "Updated at", "Custom metadata"})
-	for _, secret := range *secrets.Results {
+	for _, secret := range *secrets {
 		exit.OnErr(tableMetadata.Append(append([]string{*secret.Path}, rowFromMetadata(*secret.Metadata)...)))
 	}
 	exit.OnErr(tableMetadata.Render())
