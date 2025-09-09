@@ -17,29 +17,29 @@ import (
 
 func secretListCmd() *cobra.Command {
 	var (
-		page_size   uint32
-		page_number uint32
+		pageSize uint32
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all secrets",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			if page_size == 0 {
-				page_size = 100
+			secrets := types.ListSecretV2Response{}
+
+			for sec, err := range common.Client().ListAllSecrets(common.GetOkmsId(), &pageSize).Iter(cmd.Context()) {
+				exit.OnErr(err)
+				secrets = append(secrets, *sec)
 			}
 
-			resp := exit.OnErr2(common.Client().ListSecretV2(cmd.Context(), &page_size, &page_number))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
-				output.JsonPrint(resp)
-			} else if resp.Results != nil {
-				renderList(resp)
+				output.JsonPrint(secrets)
+			} else {
+				renderList(&secrets)
 			}
 		},
 	}
 
-	cmd.Flags().Uint32Var(&page_size, "page_size", 100, "Maximum number of secrets returned in one call.")
-	cmd.Flags().Uint32Var(&page_number, "page_number", 1, "Number of the page to return.")
+	cmd.Flags().Uint32Var(&pageSize, "page-size", 100, "Number of secrets to fetch per page (between 10 and 500)")
 	return cmd
 }
 
@@ -83,7 +83,7 @@ func secretPostCmd() *cobra.Command {
 			body.Version.Data = &data
 
 			// TODO Is CAS really required for PostSecretV2 since it create the secret
-			resp := exit.OnErr2(common.Client().PostSecretV2(cmd.Context(), body))
+			resp := exit.OnErr2(common.Client().PostSecretV2(cmd.Context(), common.GetOkmsId(), body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -115,7 +115,7 @@ func secretGetCmd() *cobra.Command {
 				versionPtr = &version
 			}
 
-			resp := exit.OnErr2(common.Client().GetSecretV2(cmd.Context(), args[0], versionPtr, &includeData))
+			resp := exit.OnErr2(common.Client().GetSecretV2(cmd.Context(), common.GetOkmsId(), args[0], versionPtr, &includeData))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -178,7 +178,7 @@ func secretPutCmd() *cobra.Command {
 				body.Version = &types.SecretV2VersionShort{Data: &data}
 			}
 
-			resp := exit.OnErr2(common.Client().PutSecretV2(cmd.Context(), args[0], c, body))
+			resp := exit.OnErr2(common.Client().PutSecretV2(cmd.Context(), common.GetOkmsId(), args[0], c, body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -202,7 +202,7 @@ func secretDeleteCmd() *cobra.Command {
 		Short: "Delete a secret and all its versions",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit.OnErr(common.Client().DeleteSecretV2(cmd.Context(), args[0]))
+			exit.OnErr(common.Client().DeleteSecretV2(cmd.Context(), common.GetOkmsId(), args[0]))
 			fmt.Printf("Secret %s successfully deleted\n", args[0])
 		},
 	}

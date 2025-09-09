@@ -41,7 +41,7 @@ In both cases, DATA can be either plain text, a '-' to read from stdin, or a fil
 	signCmd.Run = func(cmd *cobra.Command, args []string) {
 		data := readDigest(params.signatureAlgorithm, args[1], "Signing", noProgress)
 		keyId := exit.OnErr2(uuid.Parse(args[0]))
-		signature := exit.OnErr2(common.Client().Sign(cmd.Context(), keyId, nil, params.signatureAlgorithm.Alg(), true, data))
+		signature := exit.OnErr2(common.Client().Sign(cmd.Context(), common.GetOkmsId(), keyId, nil, params.signatureAlgorithm.Alg(), true, data))
 		if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 			output.JsonPrint(signature)
 		} else {
@@ -81,7 +81,7 @@ SIGNATURE can also be passed from a file or stdin using '-' or '@'. Stdin can ho
 		signature := flagsmgmt.StringFromArg(args[2], 8192)
 		keyId := exit.OnErr2(uuid.Parse(args[0]))
 		if !local {
-			valid := exit.OnErr2(common.Client().Verify(cmd.Context(), keyId, params.signatureAlgorithm.Alg(), true, data, signature))
+			valid := exit.OnErr2(common.Client().Verify(cmd.Context(), common.GetOkmsId(), keyId, params.signatureAlgorithm.Alg(), true, data, signature))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(valid)
 			} else if valid {
@@ -91,7 +91,7 @@ SIGNATURE can also be passed from a file or stdin using '-' or '@'. Stdin can ho
 				exit.OnErr(errors.New("Signature invalid"))
 			}
 		} else {
-			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), keyId, utils.PtrTo(types.Jwk)))
+			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), common.GetOkmsId(), keyId, utils.PtrTo(types.Jwk)))
 			if len(*resp.Keys) == 0 {
 				exit.OnErr(errors.New("The server returned no key"))
 			}

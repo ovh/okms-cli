@@ -7,12 +7,15 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/knadh/koanf/v2"
 	"github.com/ovh/okms-cli/common/utils/exit"
 	"github.com/spf13/cobra"
 )
 
 type EndpointAuth interface {
+	GetOkmsId() uuid.UUID
+	GetToken() *string
 	TlsCertificates() []tls.Certificate
 }
 
@@ -43,17 +46,20 @@ func RegisterAuthMethod(name string, method AuthMethod) {
 	authMethods[name] = method
 }
 
-func getAuthMethod(name string) AuthMethod {
+func getAuthMethod(service, name string) AuthMethod {
 	name = strings.ToLower(name)
 	authMethod, ok := authMethods[name]
 	if !ok {
 		exit.OnErr(errors.New("Unsupported auth type"))
 	}
+	if name != "mtls" && service == "kmip" {
+		exit.OnErr(errors.New("Unsupported auth type for " + service))
+	}
 	return authMethod
 }
 
-func buildAuthMethod(name string, cmd *cobra.Command, k *koanf.Koanf, envPrefix string) EndpointAuth {
-	return getAuthMethod(name)(cmd, k, envPrefix)
+func buildAuthMethod(service, name string, cmd *cobra.Command, k *koanf.Koanf, envPrefix string) EndpointAuth {
+	return getAuthMethod(service, name)(cmd, k, envPrefix)
 }
 
 type AuthMethodFlag string

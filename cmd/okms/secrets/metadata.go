@@ -35,7 +35,7 @@ func kvGetMetadataCommand() *cobra.Command {
 		Short: "Retrieves path metadata from the KV store",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			resp := exit.OnErr2(common.Client().GetSecretsMetadata(cmd.Context(), args[0], false))
+			resp := exit.OnErr2(common.Client().GetSecretsMetadata(cmd.Context(), common.GetOkmsId(), args[0], false))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else if resp.Data != nil {
@@ -141,7 +141,7 @@ func kvPutMetadataCommand() *cobra.Command {
 				CustomMetadata:     &customMetadata,
 			}
 
-			exit.OnErr(common.Client().PostSecretMetadata(cmd.Context(), args[0], body))
+			exit.OnErr(common.Client().PostSecretMetadata(cmd.Context(), common.GetOkmsId(), args[0], body))
 		},
 	}
 
@@ -187,7 +187,7 @@ func kvPatchMetadataCommand() *cobra.Command {
 				CustomMetadata:     &customMetadata,
 			}
 
-			exit.OnErr(common.Client().PatchSecretMetadata(cmd.Context(), args[0], body))
+			exit.OnErr(common.Client().PatchSecretMetadata(cmd.Context(), common.GetOkmsId(), args[0], body))
 		},
 	}
 
@@ -204,7 +204,7 @@ func kvDeleteMetadataCommand() *cobra.Command {
 		Short: "Deletes all versions and metadata for the provided path.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit.OnErr(common.Client().DeleteSecretMetadata(cmd.Context(), args[0]))
+			exit.OnErr(common.Client().DeleteSecretMetadata(cmd.Context(), common.GetOkmsId(), args[0]))
 		},
 	}
 }
