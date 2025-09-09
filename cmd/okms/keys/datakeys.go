@@ -39,7 +39,7 @@ func newGenerateDataKeyFromServiceKeyCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
-			plaintext, encrypted := exit.OnErr3(common.Client().GenerateDataKey(cmd.Context(), keyId, name, keySize))
+			plaintext, encrypted := exit.OnErr3(common.Client().GenerateDataKey(cmd.Context(), common.GetOkmsId(), keyId, name, keySize))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(map[string]any{
 					"plain":     plaintext,
@@ -66,7 +66,7 @@ DATA-KEY can be either plain text, a '-' to read from stdin, or a filename prefi
 		Args: cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
-			plaintext := exit.OnErr2(common.Client().DecryptDataKey(cmd.Context(), keyId, flagsmgmt.StringFromArg(args[1], 8192)))
+			plaintext := exit.OnErr2(common.Client().DecryptDataKey(cmd.Context(), common.GetOkmsId(), keyId, flagsmgmt.StringFromArg(args[1], 8192)))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(plaintext)
 			} else {

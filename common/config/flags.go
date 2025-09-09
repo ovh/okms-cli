@@ -16,10 +16,13 @@ func SetupEndpointFlags(command *cobra.Command, service string, init func(cmd *c
 		desc = fmt.Sprintf("Endpoint address to %s", service)
 	}
 	command.PersistentFlags().String("endpoint", "", desc)
-	command.PersistentFlags().String("cert", "", "Path to certificate")
 	command.PersistentFlags().String("ca", "", "Path to CA bundle")
+	command.PersistentFlags().String("cert", "", "Path to certificate")
 	command.PersistentFlags().String("key", "", "Path to key file")
+	command.PersistentFlags().String("token", "", "Token")
+	command.PersistentFlags().String("okmsId", "", "OKMS id")
 	command.PersistentFlags().Var(new(AuthMethodFlag), "auth-method", "Authentication method to use")
+
 	var format = flagsmgmt.TEXT_OUTPUT_FORMAT
 	command.PersistentFlags().Var(&format, "output", "The formatting style for command output.")
 

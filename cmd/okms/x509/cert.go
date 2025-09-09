@@ -33,7 +33,7 @@ func createGenerateCertCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
-			signer := exit.OnErr2(common.Client().NewSigner(cmd.Context(), keyId))
+			signer := exit.OnErr2(common.Client().NewSigner(cmd.Context(), common.GetOkmsId(), keyId))
 
 			// Certificate template
 			certTemplate := &x509.Certificate{
