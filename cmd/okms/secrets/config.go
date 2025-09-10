@@ -33,7 +33,7 @@ func kvReadConfigCommand() *cobra.Command {
 		Short: "Reads secret engine configuration",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			resp := exit.OnErr2(common.Client().GetSecretConfig(cmd.Context()))
+			resp := exit.OnErr2(common.Client().GetSecretConfig(cmd.Context(), common.GetOkmsId()))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -82,7 +82,7 @@ func kvWriteConfigCommand() *cobra.Command {
 				MaxVersions:        m,
 			}
 
-			exit.OnErr(common.Client().PostSecretConfig(cmd.Context(), body))
+			exit.OnErr(common.Client().PostSecretConfig(cmd.Context(), common.GetOkmsId(), body))
 		},
 	}
 

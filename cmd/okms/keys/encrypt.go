@@ -50,7 +50,7 @@ OUTPUT can be either a filepath, or a "-" for stdout. If not set, output is stdo
 				return
 			}
 			data := flagsmgmt.BytesFromArg(args[1], 8192)
-			resp := exit.OnErr2(common.Client().Encrypt(cmd.Context(), keyId, context, data))
+			resp := exit.OnErr2(common.Client().Encrypt(cmd.Context(), common.GetOkmsId(), keyId, context, data))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -83,7 +83,7 @@ func wrapEncrypt(ctx context.Context, input, output string, keyId uuid.UUID, key
 		defer out.Close()
 	}
 
-	out, err := common.Client().DataKeys(keyId).EncryptStream(ctx, out, keyCtx, okms.BlockSize4MB)
+	out, err := common.Client().DataKeys(common.GetOkmsId(), keyId).EncryptStream(ctx, out, keyCtx, okms.BlockSize4MB)
 	if err != nil {
 		return err
 	}

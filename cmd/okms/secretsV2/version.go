@@ -47,7 +47,7 @@ func secretVersionGetCmd() *cobra.Command {
 				v = version
 			}
 
-			resp := exit.OnErr2(common.Client().GetSecretVersionV2(cmd.Context(), args[0], v, &includeData))
+			resp := exit.OnErr2(common.Client().GetSecretVersionV2(cmd.Context(), common.GetOkmsId(), args[0], v, &includeData))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -64,19 +64,30 @@ func secretVersionGetCmd() *cobra.Command {
 }
 
 func secretVersionListCmd() *cobra.Command {
+	var (
+		pageSize uint32
+	)
 	cmd := &cobra.Command{
 		Use:   "list PATH",
 		Short: "Retrieve all secret versions",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			resp := exit.OnErr2(common.Client().ListSecretVersionV2(cmd.Context(), args[0]))
+			versions := types.ListSecretVersionV2Response{}
+
+			for sec, err := range common.Client().ListAllSecretVersions(common.GetOkmsId(), args[0], &pageSize).Iter(cmd.Context()) {
+				exit.OnErr(err)
+				versions = append(versions, *sec)
+			}
+
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
-				output.JsonPrint(resp)
+				output.JsonPrint(versions)
 			} else {
-				renderListMetadataVersion(*resp)
+				renderListMetadataVersion(versions)
 			}
 		},
 	}
+
+	cmd.Flags().Uint32Var(&pageSize, "page-size", 100, "Number of secret versions to fetch per page (between 10 and 500)")
 	return cmd
 }
 
@@ -103,7 +114,7 @@ func secretVersionPutCmd() *cobra.Command {
 				State: state.ToRestSecretV2States(),
 			}
 
-			resp := exit.OnErr2(common.Client().PutSecretVersionV2(cmd.Context(), args[0], version, body))
+			resp := exit.OnErr2(common.Client().PutSecretVersionV2(cmd.Context(), common.GetOkmsId(), args[0], version, body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -126,7 +137,7 @@ func stateFunction(version *uint32, state types.SecretV2State) func(cmd *cobra.C
 			State: state,
 		}
 
-		resp := exit.OnErr2(common.Client().PutSecretVersionV2(cmd.Context(), args[0], *version, body))
+		resp := exit.OnErr2(common.Client().PutSecretVersionV2(cmd.Context(), common.GetOkmsId(), args[0], *version, body))
 		if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 			output.JsonPrint(resp)
 		} else {
@@ -200,7 +211,7 @@ func secretVersionPostCmd() *cobra.Command {
 			}
 			body.Data = &data
 
-			resp := exit.OnErr2(common.Client().PostSecretVersionV2(cmd.Context(), args[0], c, body))
+			resp := exit.OnErr2(common.Client().PostSecretVersionV2(cmd.Context(), common.GetOkmsId(), args[0], c, body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
