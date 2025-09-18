@@ -61,6 +61,12 @@ func ReadUserInput(prompt, key, profile string, validate ...Validator) {
 	exit.OnErr(k.Set(profiledKey, strings.TrimSpace(userVal)))
 }
 
+func SetConfigKey(profile, key, value string) {
+	// Build the key according to the given profile
+	profiledKey := fmt.Sprintf("profiles.%s.%s", profile, key)
+	exit.OnErr(k.Set(profiledKey, strings.TrimSpace(value)))
+}
+
 func LoadFromFile(defaultFile, customFile string) (string, error) {
 	k = koanf.New(".")
 	defer checkVersionAndMigrate()
@@ -147,7 +153,7 @@ func loadV1(command *cobra.Command, service string) EndpointConfig {
 	return EndpointConfig{
 		Endpoint: ep,
 		CaFile:   exit.OnErr2(utils.ExpandTilde(caFile)),
-		Auth:     buildAuthMethod(authMethod, command, k.Cut("auth"), envPrefix),
+		Auth:     buildAuthMethod(service, authMethod, command, k.Cut("auth"), envPrefix),
 	}
 }
 

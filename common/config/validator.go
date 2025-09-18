@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/ovh/okms-cli/internal/utils"
 )
 
@@ -48,6 +49,16 @@ var (
 	ValidateTCPAddr Validator = func(s string) error {
 		_, err := net.ResolveTCPAddr("tcp", s)
 		return err
+	}
+	ValidateUUID Validator = func(s string) error {
+		_, err := uuid.Parse(s)
+		return err
+	}
+	ValidateNotEmpty Validator = func(s string) error {
+		if s == "" {
+			return errors.New("Must not be empty")
+		}
+		return nil
 	}
 )
 

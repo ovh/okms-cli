@@ -32,7 +32,7 @@ func kvGetCmd() *cobra.Command {
 				v = &version
 			}
 
-			resp := exit.OnErr2(common.Client().GetSecretRequest(cmd.Context(), args[0], v))
+			resp := exit.OnErr2(common.Client().GetSecretRequest(cmd.Context(), common.GetOkmsId(), args[0], v))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else if resp.Data != nil {
@@ -42,7 +42,7 @@ func kvGetCmd() *cobra.Command {
 					fmt.Println("Data")
 					table := tablewriter.NewWriter(os.Stdout)
 					table.Header([]string{"Key", "Value"})
-					kvs, ok := (*resp.Data.Data).(map[string]any)
+					kvs, ok := (resp.Data.Data).(map[string]any)
 					if ok {
 						for k, v := range kvs {
 							exit.OnErr(table.Append([]string{k, fmt.Sprintf("%v", v)}))
@@ -82,15 +82,13 @@ func kvPutCmd() *cobra.Command {
 				c = utils.ToUint32(c)
 			}
 			body := types.PostSecretRequest{
-				Data: new(any),
+				Data: data,
 				Options: &types.PostSecretOptions{
 					Cas: &c,
 				},
 			}
 
-			*(body.Data) = data
-
-			resp := exit.OnErr2(common.Client().PostSecretRequest(cmd.Context(), args[0], body))
+			resp := exit.OnErr2(common.Client().PostSecretRequest(cmd.Context(), common.GetOkmsId(), args[0], body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -127,15 +125,13 @@ func kvPatchCmd() *cobra.Command {
 				c = utils.ToUint32(cas)
 			}
 			body := types.PostSecretRequest{
-				Data: new(any),
+				Data: data,
 				Options: &types.PostSecretOptions{
 					Cas: &c,
 				},
 			}
 
-			*(body.Data) = data
-
-			resp := exit.OnErr2(common.Client().PatchSecretRequest(cmd.Context(), args[0], body))
+			resp := exit.OnErr2(common.Client().PatchSecretRequest(cmd.Context(), common.GetOkmsId(), args[0], body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -159,9 +155,9 @@ func kvDeleteCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(versions) == 0 {
-				exit.OnErr(common.Client().DeleteSecretRequest(cmd.Context(), args[0]))
+				exit.OnErr(common.Client().DeleteSecretRequest(cmd.Context(), common.GetOkmsId(), args[0]))
 			} else {
-				exit.OnErr(common.Client().DeleteSecretVersions(cmd.Context(), args[0], utils.ToUint32Array(versions)))
+				exit.OnErr(common.Client().DeleteSecretVersions(cmd.Context(), common.GetOkmsId(), args[0], utils.ToUint32Array(versions)))
 			}
 		},
 	}
@@ -180,7 +176,7 @@ func kvUndeleteCmd() *cobra.Command {
 		Short: "Undeletes the data for the provided version and path in the key-value store.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit.OnErr(common.Client().PostSecretUndelete(cmd.Context(), args[0], utils.ToUint32Array(versions)))
+			exit.OnErr(common.Client().PostSecretUndelete(cmd.Context(), common.GetOkmsId(), args[0], utils.ToUint32Array(versions)))
 		},
 	}
 
@@ -199,7 +195,7 @@ func kvDestroyCmd() *cobra.Command {
 		Short: "Permanently removes the specified versions' data from the key-value store.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit.OnErr(common.Client().PutSecretDestroy(cmd.Context(), args[0], utils.ToUint32Array(versions)))
+			exit.OnErr(common.Client().PutSecretDestroy(cmd.Context(), common.GetOkmsId(), args[0], utils.ToUint32Array(versions)))
 		},
 	}
 
@@ -229,7 +225,7 @@ func kvSubkeysCmd() *cobra.Command {
 				d = &depth
 			}
 
-			resp := exit.OnErr2(common.Client().GetSecretSubkeys(cmd.Context(), args[0], d, v))
+			resp := exit.OnErr2(common.Client().GetSecretSubkeys(cmd.Context(), common.GetOkmsId(), args[0], d, v))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else if resp.Data != nil {
@@ -239,7 +235,7 @@ func kvSubkeysCmd() *cobra.Command {
 					fmt.Println("Subkeys")
 					table := tablewriter.NewWriter(os.Stdout)
 					table.Header([]string{"Key", "Value"})
-					kvs, ok := (*resp.Data.Subkeys).(map[string]any)
+					kvs, ok := (resp.Data.Subkeys).(map[string]any)
 					if ok {
 						for k, v := range kvs {
 							exit.OnErr(table.Append([]string{k, fmt.Sprintf("%v", v)}))

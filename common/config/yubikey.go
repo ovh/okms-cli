@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/go-piv/piv-go/v2/piv"
+	"github.com/google/uuid"
 	"github.com/knadh/koanf/v2"
 	"github.com/ovh/okms-cli/common/utils/exit"
 	"github.com/pterm/pterm"
@@ -22,8 +23,9 @@ func init() {
 }
 
 type yubikeyAuth struct {
-	cert *x509.Certificate
-	slot piv.Slot
+	cert   *x509.Certificate
+	slot   piv.Slot
+	okmsId uuid.UUID
 }
 
 func newYubikeyAuth(cmd *cobra.Command, k *koanf.Koanf, envPrefix string) EndpointAuth {
@@ -43,7 +45,14 @@ func newYubikeyAuth(cmd *cobra.Command, k *koanf.Koanf, envPrefix string) Endpoi
 			exit.OnErr(errors.New("Invalid certificate"))
 		}
 		yk.cert = exit.OnErr2(x509.ParseCertificate(pemBlock.Bytes))
+
+		okmsIdStr, err := getOkmsId(yk.cert)
+		if err != nil || okmsIdStr == "*" {
+			okmsIdStr = GetString(k, "okmsId", envPrefix+"_OKMSID", cmd.Flags().Lookup("okmsId"))
+		}
+		yk.okmsId, _ = uuid.Parse(okmsIdStr)
 	}
+
 	return yk
 }
 
@@ -89,6 +98,17 @@ func (epCfg *yubikeyAuth) TlsCertificates() []tls.Certificate {
 			Leaf:        cert,
 		},
 	}
+}
+
+func (epCfg *yubikeyAuth) GetOkmsId() uuid.UUID {
+	if epCfg.okmsId == uuid.Nil {
+		exit.OnErr(errors.New("Invalid OKMS ID"))
+	}
+	return epCfg.okmsId
+}
+
+func (epCfg *yubikeyAuth) GetToken() *string {
+	return nil
 }
 
 func parseSlotID(slotID string) (piv.Slot, bool) {
