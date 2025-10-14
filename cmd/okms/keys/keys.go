@@ -28,8 +28,8 @@ import (
 
 func newListServiceKeysCmd() *cobra.Command {
 	var (
-		keysPageSize uint32
-		listAll      bool
+		pageSize uint32
+		listAll  bool
 	)
 
 	cmd := &cobra.Command{
@@ -47,7 +47,7 @@ func newListServiceKeysCmd() *cobra.Command {
 			if listAll {
 				stateFilter = types.KeyStatesAll
 			}
-			for key, err := range common.Client().ListAllServiceKeys(&keysPageSize, &stateFilter).Iter(cmd.Context()) {
+			for key, err := range common.Client().ListAllServiceKeys(common.GetOkmsId(), &pageSize, &stateFilter).Iter(cmd.Context()) {
 				exit.OnErr(err)
 				keys.ObjectsList = append(keys.ObjectsList, *key)
 			}
@@ -75,7 +75,7 @@ func newListServiceKeysCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Uint32Var(&keysPageSize, "page-size", 100, "Number of keys to fetch per page (between 10 and 500)")
+	cmd.Flags().Uint32Var(&pageSize, "page-size", 100, "Number of keys to fetch per page (between 10 and 500)")
 	cmd.Flags().BoolVarP(&listAll, "all", "A", false, "List all keys (including deactivated and deleted ones)")
 	return cmd
 }
@@ -115,7 +115,7 @@ func newAddServiceKeyCmd() *cobra.Command {
 				body.Size = &keySizeEnum
 			}
 
-			resp := exit.OnErr2(common.Client().CreateImportServiceKey(cmd.Context(), nil, body))
+			resp := exit.OnErr2(common.Client().CreateImportServiceKey(cmd.Context(), common.GetOkmsId(), nil, body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -141,7 +141,7 @@ func newGetServiceKeyCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
-			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), keyId, nil))
+			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), common.GetOkmsId(), keyId, nil))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
@@ -159,7 +159,7 @@ func newExportPublicKeyCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
-			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), keyId, utils.PtrTo(types.Jwk)))
+			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), common.GetOkmsId(), keyId, utils.PtrTo(types.Jwk)))
 			if resp.Keys == nil || len(*resp.Keys) == 0 {
 				exit.OnErr(errors.New("Server returned no key"))
 			}
@@ -228,10 +228,10 @@ func newImportServiceKeyCmd() *cobra.Command {
 			key := flagsmgmt.BytesFromArg(args[1], 8192)
 			var resp *types.GetServiceKeyResponse
 			if !symmetric {
-				resp = exit.OnErr2(common.Client().ImportKeyPairPEM(cmd.Context(), key, args[0], keyContext, keyUsage.ToCryptographicUsage()...))
+				resp = exit.OnErr2(common.Client().ImportKeyPairPEM(cmd.Context(), common.GetOkmsId(), key, args[0], keyContext, keyUsage.ToCryptographicUsage()...))
 			} else {
 				k := exit.OnErr2(base64.StdEncoding.DecodeString(string(key)))
-				resp = exit.OnErr2(common.Client().ImportKey(cmd.Context(), k, args[0], keyContext, keyUsage.ToCryptographicUsage()...))
+				resp = exit.OnErr2(common.Client().ImportKey(cmd.Context(), common.GetOkmsId(), k, args[0], keyContext, keyUsage.ToCryptographicUsage()...))
 			}
 
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
@@ -310,12 +310,12 @@ func newDeleteKeyCmd() *cobra.Command {
 					continue
 				}
 				if force {
-					if err := common.Client().DeactivateServiceKey(cmd.Context(), keyId, types.Unspecified); err != nil {
+					if err := common.Client().DeactivateServiceKey(cmd.Context(), common.GetOkmsId(), keyId, types.Unspecified); err != nil {
 						errs = append(errs, fmt.Errorf("Failed to deactivate key %q: %w", id, err))
 						continue
 					}
 				}
-				if err := common.Client().DeleteServiceKey(cmd.Context(), keyId); err != nil {
+				if err := common.Client().DeleteServiceKey(cmd.Context(), common.GetOkmsId(), keyId); err != nil {
 					errs = append(errs, fmt.Errorf("Failed to delete key %q: %w", id, err))
 				}
 			}
@@ -342,7 +342,7 @@ func newDeactivateKeyCmd() *cobra.Command {
 					errs = append(errs, fmt.Errorf("Invalid Key ID %q: %w", id, err))
 					continue
 				}
-				if err := common.Client().DeactivateServiceKey(cmd.Context(), keyId, revocationReason.RestModel()); err != nil {
+				if err := common.Client().DeactivateServiceKey(cmd.Context(), common.GetOkmsId(), keyId, revocationReason.RestModel()); err != nil {
 					errs = append(errs, fmt.Errorf("Failed to deactivate key %q: %w", id, err))
 				}
 			}
@@ -366,7 +366,7 @@ func newActivateKeyCmd() *cobra.Command {
 					errs = append(errs, fmt.Errorf("Invalid Key ID %q: %w", id, err))
 					continue
 				}
-				if err := common.Client().ActivateServiceKey(cmd.Context(), keyId); err != nil {
+				if err := common.Client().ActivateServiceKey(cmd.Context(), common.GetOkmsId(), keyId); err != nil {
 					errs = append(errs, fmt.Errorf("Failed to activate key %q: %w", id, err))
 				}
 			}
@@ -388,7 +388,7 @@ func newUpdateKeyCmd() *cobra.Command {
 			if name != "" {
 				body.Name = name
 			}
-			resp := exit.OnErr2(common.Client().UpdateServiceKey(cmd.Context(), keyId, body))
+			resp := exit.OnErr2(common.Client().UpdateServiceKey(cmd.Context(), common.GetOkmsId(), keyId, body))
 			printServiceKey(resp)
 		},
 	}

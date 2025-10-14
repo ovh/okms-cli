@@ -1,4 +1,4 @@
-package secrets
+package secretsv2
 
 import (
 	"fmt"
@@ -14,34 +14,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func kvConfigCommand() *cobra.Command {
+func secretConfigCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manages secret engine configuration",
 	}
 
 	cmd.AddCommand(
-		kvReadConfigCommand(),
-		kvWriteConfigCommand(),
+		secretGetConfigCommand(),
+		secretUpdateConfigCommand(),
 	)
 	return cmd
 }
 
-func kvReadConfigCommand() *cobra.Command {
+func secretGetConfigCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:   "read",
-		Short: "Reads secret engine configuration",
+		Use:   "get",
+		Short: "Retrieve secrets configuration",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			resp := exit.OnErr2(common.Client().GetSecretConfig(cmd.Context(), common.GetOkmsId()))
+			resp := exit.OnErr2(common.Client().GetSecretConfigV2(cmd.Context(), common.GetOkmsId()))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
 			} else {
 				table := tablewriter.NewWriter(os.Stdout)
 				exit.OnErr(table.Bulk([][]string{
-					{"cas", fmt.Sprintf("%t", utils.DerefOrDefault(resp.Data.CasRequired))},
-					{"Delete version after", utils.DerefOrDefault(resp.Data.DeleteVersionAfter)},
-					{"Max. number of versions", fmt.Sprintf("%d", utils.DerefOrDefault(resp.Data.MaxVersions))},
+					{"Cas required", fmt.Sprintf("%t", utils.DerefOrDefault(resp.CasRequired))},
+					{"Deactivate version after", utils.DerefOrDefault(resp.DeactivateVersionAfter)},
+					{"Max. number of versions", fmt.Sprintf("%d", utils.DerefOrDefault(resp.MaxVersions))},
 				}))
 				exit.OnErr(table.Render())
 			}
@@ -49,17 +49,17 @@ func kvReadConfigCommand() *cobra.Command {
 	}
 }
 
-func kvWriteConfigCommand() *cobra.Command {
+func secretUpdateConfigCommand() *cobra.Command {
 	var (
-		casRequired        bool
-		maxVersions        uint32
-		deleteVersionAfter string
+		casRequired            bool
+		maxVersions            uint32
+		deactivateVersionAfter string
 	)
 
 	cmd := &cobra.Command{
-		Use:   "write",
-		Short: "Writes secret engine configuration",
-		Args:  cobra.NoArgs,
+		Use:   "update",
+		Short: "Update secrets configuration",
+		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			var c *bool
 			if cmd.Flag("cas-required").Changed {
@@ -67,8 +67,8 @@ func kvWriteConfigCommand() *cobra.Command {
 			}
 
 			var d *string
-			if cmd.Flag("delete-after").Changed {
-				d = &deleteVersionAfter
+			if cmd.Flag("deactivate-after").Changed {
+				d = &deactivateVersionAfter
 			}
 
 			var m *uint32
@@ -88,6 +88,6 @@ func kvWriteConfigCommand() *cobra.Command {
 
 	cmd.Flags().BoolVar(&casRequired, "cas-required", false, "If true all keys will require the cas parameter to be set on all write requests.")
 	cmd.Flags().Uint32Var(&maxVersions, "max-versions", 0, "The number of versions to keep per key. This value applies to all keys, but a key's metadata setting can overwrite this value. Once a key has more than the configured allowed versions, the oldest version will be permanently deleted. ")
-	cmd.Flags().StringVar(&deleteVersionAfter, "delete-after", "0s", "If set, specifies the length of time before a version is deleted.\nDate format, see: https://developer.hashicorp.com/vault/docs/concepts/duration-format")
+	cmd.Flags().StringVar(&deactivateVersionAfter, "deactivate-after", "0s", "If set, specifies the length of time before a version is deactivated.\nDate format, see: https://developer.hashicorp.com/vault/docs/concepts/duration-format")
 	return cmd
 }

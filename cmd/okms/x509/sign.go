@@ -53,7 +53,7 @@ KEY-ID must be the CA's private key UUID`,
 				keyId = uuid.UUID(ca.SubjectKeyId)
 			}
 
-			signer := exit.OnErr2(common.Client().NewSigner(cmd.Context(), keyId))
+			signer := exit.OnErr2(common.Client().NewSigner(cmd.Context(), common.GetOkmsId(), keyId))
 
 			certTemplate := &x509.Certificate{
 				SignatureAlgorithm: ca.SignatureAlgorithm,
