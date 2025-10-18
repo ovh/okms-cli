@@ -71,6 +71,7 @@ KEY-ID must be the CA's private key UUID`,
 				Subject:        csr.Subject,
 				AuthorityKeyId: keyId[:],
 				NotBefore:      time.Now(),
+				NotAfter:       time.Now().Add(validity),
 				ExtKeyUsage:    []x509.ExtKeyUsage{},
 			}
 			if isCA {
@@ -100,7 +101,7 @@ KEY-ID must be the CA's private key UUID`,
 	}
 	cmd.Flags().DurationVar(&validity, "validity", 365*24*time.Hour, "Validity duration")
 	cmd.Flags().BoolVar(&usageServerAuth, "server-auth", false, "Enable server auth extended key usage")
-	cmd.Flags().BoolVar(&usageServerAuth, "client-auth", false, "Enable client auth extended key usage")
+	cmd.Flags().BoolVar(&usageClientAuth, "client-auth", false, "Enable client auth extended key usage")
 
 	cmd.Flags().BoolVar(&isCA, "new-ca", false, "Sign as a CA certificate")
 
