@@ -44,7 +44,7 @@ jobs:
         run: ./okms keys ls -d -c okms.yaml
       - name: Execute tests
         run: make -C tests
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: test_results
           path: |
@@ -52,7 +52,7 @@ jobs:
             ./tests/out/venom.log
           retention-days: 5
         if: always()
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: coverage
           path: |
@@ -98,7 +98,7 @@ jobs:
         run: ./okms keys ls -d -c okms.yaml
       - name: Execute tests
         run: make -C tests
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: test_results_preprod
           path: |
@@ -106,7 +106,7 @@ jobs:
             ./tests/out/venom.log
           retention-days: 5
         if: always()
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: coverage-preprod
           path: |

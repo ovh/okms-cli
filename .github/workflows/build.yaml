@@ -33,7 +33,7 @@ jobs:
       - name: Unit Test CLI
         run: go test -v -tags="${{ matrix.tags }}" ./...
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: cli
           path: |
