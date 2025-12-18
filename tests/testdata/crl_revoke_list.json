@@ -1,0 +1,16 @@
+[
+  {
+    "serialNumber": 12345678901234567890,
+    "revocationDate": "2024-12-19T12:00:00Z"
+  },
+  {
+    "serialNumber": "98765432109876543210987654321",
+    "revocationDate": "2026-11-01T09:30:00Z",
+    "reasonCode": 1
+  },
+  {
+    "serialNumber": "0x51EAFEB18805F42568699A71EB3755CB",
+    "revocationDate": "2027-10-05T00:00:00Z",
+    "reasonCode": 3
+  }
+]

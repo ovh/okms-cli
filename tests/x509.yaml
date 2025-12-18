@@ -36,6 +36,29 @@ testcases:
         assertions:
           - result.code ShouldEqual 0
 
+  - name: Create CRL
+    steps:
+      - name: Create CRL
+        type: okms-cmd
+        args: x509 create crl out/ca.pem testdata/crl_revoke_list.json
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Create CRL with options
+        type: okms-cmd
+        args: x509 create crl out/ca.pem testdata/crl_revoke_list.json --nextUpdate 168h --crlNumber 42
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Create CRL with CA Key Id
+        type: okms-cmd
+        args: x509 create crl out/ca.pem testdata/crl_revoke_list.json {{ .Create-Keys.rsaKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Create CRL with wrong CA Key Id
+        type: okms-cmd
+        args: x509 create crl out/ca.pem testdata/crl_revoke_list.json {{ .Create-Keys.ecKeyId }}
+        assertions:
+          - result.code ShouldEqual 1
+
   - name: Create and sign CSR
     steps:
       - name: Create CSR
