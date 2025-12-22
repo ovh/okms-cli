@@ -36,7 +36,7 @@ func CreateGenerateCrlCommand() *cobra.Command {
 		Args:  cobra.RangeArgs(2, 3),
 		Run: func(cmd *cobra.Command, args []string) {
 			caData := exit.OnErr2(os.ReadFile(args[0]))
-			caDer, _ := pem.Decode(caData)
+			caDer := exit.OnErr2(x509utils.PemDecode(caData))
 			ca := exit.OnErr2(x509.ParseCertificate(caDer.Bytes))
 
 			var revocationEntries []revocationEntry
