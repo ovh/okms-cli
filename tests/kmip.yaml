@@ -318,6 +318,15 @@ testcases:
           allKeys:
             from: result.systemoutjson.UniqueIdentifier
 
+      - name: Force revoke {{ .value }}
+        type: okms-cmd
+        range: "{{.allKeys}}"
+        args: kmip revoke --force {{.value}}
+        assertions:
+          - result.code ShouldEqual 0
+
+
+
       - name: Force delete {{ .value }}
         type: okms-cmd
         range: "{{.allKeys}}"
