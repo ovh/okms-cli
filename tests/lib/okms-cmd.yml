@@ -3,7 +3,7 @@ input:
   args: {}
   format: json
 steps:
-  - script: mkdir -p ./out/coverage && GOCOVERDIR=./out/coverage {{ .cmd_path }} -c {{ .cfg_path }} --output {{ .input.format }} {{ .input.args }}
+  - script: mkdir -p ./out/coverage && GOCOVERDIR=./out/coverage {{ .cmd_path }} -c {{ .cfg_path }} --output {{ .input.format }} {{ .input.args }} -d  
     vars:
       code:
         from: result.code
