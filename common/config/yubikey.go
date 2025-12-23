@@ -5,7 +5,6 @@ package config
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"os"
 	"strconv"
@@ -14,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/knadh/koanf/v2"
 	"github.com/ovh/okms-cli/common/utils/exit"
+	"github.com/ovh/okms-cli/common/utils/x509utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -40,7 +40,7 @@ func newYubikeyAuth(cmd *cobra.Command, k *koanf.Koanf, envPrefix string) Endpoi
 	}
 
 	if certFile := GetString(k, "cert", envPrefix+"_CERT", cmd.Flags().Lookup("cert")); certFile != "" {
-		pemBlock, _ := pem.Decode(exit.OnErr2(os.ReadFile(certFile)))
+		pemBlock := exit.OnErr2(x509utils.PemDecode(exit.OnErr2(os.ReadFile(certFile))))
 		if pemBlock.Type != "CERTIFICATE" {
 			exit.OnErr(errors.New("Invalid certificate"))
 		}

@@ -13,6 +13,7 @@ func newCreateCommand() *cobra.Command {
 		createGenerateCaCommand(),
 		createGenerateCertCommand(),
 		createGenerateCsrCommand(),
+		CreateGenerateCrlCommand(),
 	)
 	return cmd
 }

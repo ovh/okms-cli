@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ovh/okms-cli/cmd/okms/common"
 	"github.com/ovh/okms-cli/common/utils/exit"
+	"github.com/ovh/okms-cli/common/utils/x509utils"
 	"github.com/spf13/cobra"
 )
 
@@ -36,10 +37,10 @@ KEY-ID must be the CA's private key UUID`,
 			csrData := exit.OnErr2(os.ReadFile(args[0]))
 			caData := exit.OnErr2(os.ReadFile(args[1]))
 
-			caDer, _ := pem.Decode(caData)
+			caDer := exit.OnErr2(x509utils.PemDecode(caData))
 			ca := exit.OnErr2(x509.ParseCertificate(caDer.Bytes))
 
-			csrDer, _ := pem.Decode(csrData)
+			csrDer := exit.OnErr2(x509utils.PemDecode(csrData))
 			csr := exit.OnErr2(x509.ParseCertificateRequest(csrDer.Bytes))
 			exit.OnErr(csr.CheckSignature())
 
