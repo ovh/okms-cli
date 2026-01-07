@@ -82,7 +82,6 @@ func secretPostCmd() *cobra.Command {
 			}
 			body.Version.Data = &data
 
-			// TODO Is CAS really required for PostSecretV2 since it create the secret
 			resp := exit.OnErr2(common.Client().PostSecretV2(cmd.Context(), common.GetOkmsId(), body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)

@@ -77,15 +77,10 @@ func kvPutCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			var c uint32
-			if cas != -1 {
-				c = utils.ToUint32(c)
-			}
-			body := types.PostSecretRequest{
-				Data: data,
-				Options: &types.PostSecretOptions{
-					Cas: &c,
-				},
+			body := types.PostSecretRequest{Data: data}
+			if cas > -1 {
+				c := utils.ToUint32(cas)
+				body.Options = &types.PostSecretOptions{Cas: &c}
 			}
 
 			resp := exit.OnErr2(common.Client().PostSecretRequest(cmd.Context(), common.GetOkmsId(), args[0], body))
@@ -120,15 +115,10 @@ func kvPatchCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			var c uint32
-			if cas != -1 {
-				c = utils.ToUint32(cas)
-			}
-			body := types.PostSecretRequest{
-				Data: data,
-				Options: &types.PostSecretOptions{
-					Cas: &c,
-				},
+			body := types.PostSecretRequest{Data: data}
+			if cas > -1 {
+				c := utils.ToUint32(cas)
+				body.Options = &types.PostSecretOptions{Cas: &c}
 			}
 
 			resp := exit.OnErr2(common.Client().PatchSecretRequest(cmd.Context(), common.GetOkmsId(), args[0], body))
