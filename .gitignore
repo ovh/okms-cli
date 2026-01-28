@@ -48,6 +48,7 @@ tmp.CHANGELOG.md
 
 .config/
 .cache/
+.continue/
 
 # Venom tests output
 tests/out
