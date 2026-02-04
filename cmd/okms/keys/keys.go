@@ -85,9 +85,10 @@ func newAddServiceKeyCmd() *cobra.Command {
 		keyUsage restflags.KeyUsageList
 		keySize  int32
 		//lint:ignore ST1023 setting default
-		keySpec    = restflags.OCTETSTREAM
-		curveType  restflags.CurveType
-		keyContext string
+		keySpec         = restflags.OCTETSTREAM
+		curveType       restflags.CurveType
+		protectionLevel restflags.ProtectionLevel
+		keyContext      string
 	)
 
 	cmd := &cobra.Command{
@@ -130,6 +131,7 @@ func newAddServiceKeyCmd() *cobra.Command {
 	cmd.Flags().Var(&keySpec, "type", "Defines type of a key to be created.")
 	cmd.Flags().Int32Var(&keySize, "size", 256, "Size of the key to be generated")
 	cmd.Flags().Var(&curveType, "curve", "Curve type for Elliptic Curve (ec) keys.")
+	cmd.Flags().Var(&protectionLevel, "protectionLevel", "Level of protection of the key's storage (software, HSM or Managed HSM).")
 	cmd.MarkFlagsMutuallyExclusive("size", "curve")
 	return cmd
 }
@@ -280,6 +282,7 @@ func printServiceKey(resp *types.GetServiceKeyResponse) {
 		{"Size", size},
 		{"Curve", curve},
 		{"Usage", usage},
+		{"Protection Level", string(resp.ProtectionLevel)},
 		{"Created at", keyAttr.CreatedAt.Format(time.DateTime)},
 	}))
 	if keyAttr.ActivatedAt != nil {
