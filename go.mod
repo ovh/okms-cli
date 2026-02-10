@@ -27,7 +27,7 @@ require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/clipperhouse/displaywidth v0.9.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
-	github.com/clipperhouse/uax29/v2 v2.5.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.6.0 // indirect
 	github.com/containerd/console v1.0.5 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
