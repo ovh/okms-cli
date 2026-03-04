@@ -80,7 +80,7 @@ Checkout the [full documentation](./doc/okms.md)
 Invoke the binary `okms[.exe]` or run `go run ./cmd/okms`
 
 ```
-$ ./okms --help            
+$ ./okms --help
 Usage:
   okms [command]
 
@@ -103,7 +103,7 @@ Use "okms [command] --help" for more information about a command.
 
 Default settings can be set using a configuration file named _okms.yaml_ and located in the _${HOME}/.ovh-kms_ directory.
 
-Example for `omks.yaml`:
+Example for `okms.yaml`:
 
 ```yaml
 version: 1
