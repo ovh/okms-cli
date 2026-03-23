@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/go-secure-stdlib/kv-builder v0.1.2
 	github.com/knadh/koanf/parsers/yaml v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.1
-	github.com/knadh/koanf/v2 v2.3.3
+	github.com/knadh/koanf/v2 v2.3.4
 	github.com/olekukonko/tablewriter v1.1.4
 	github.com/ovh/kmip-go v0.7.2
 	github.com/ovh/okms-sdk-go v0.5.2-0.20260128141747-b962b50c8256
