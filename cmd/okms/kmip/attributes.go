@@ -73,6 +73,69 @@ func getAttributesCommand() *cobra.Command {
 	}
 }
 
+func deleteAttributeCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete ID ATTRIBUTE_NAME",
+		Short: "Delete an existing attribute of an object",
+		Args:  cobra.ExactArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			id := args[0]
+			attrName := kmip.AttributeName(args[1])
+
+			req := kmipClient.DeleteAttribute(id, attrName)
+			if idx, err := cmd.Flags().GetInt32("index"); err == nil && cmd.Flags().Changed("index") {
+				req = req.WithIndex(idx)
+			}
+
+			resp := exit.OnErr2(req.ExecContext(cmd.Context()))
+			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
+				output.JsonPrint(resp)
+				return
+			}
+			printAttributeTable([]kmip.Attribute{resp.Attribute})
+		},
+	}
+	cmd.Flags().Int32("index", 0, "Index of the attribute instance to delete (default 0)")
+	return cmd
+}
+
+func modifyAttributeCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "modify ID ATTRIBUTE_NAME VALUE",
+		Short: "Modify an existing attribute of an object",
+		Long: `Modify an existing attribute of a KMIP managed object.
+
+For the "Name" attribute, VALUE is passed as an 'Uninterpreted Text String'.
+For all other standard attributes, VALUE is passed as a plain 'Text String'.
+Therefore, only attributes with a 'Text String' encoding are supported with this command.`,
+		Args: cobra.ExactArgs(3),
+		Run: func(cmd *cobra.Command, args []string) {
+			id := args[0]
+			attrName := kmip.AttributeName(args[1])
+			rawValue := args[2]
+
+			var value any
+			switch attrName {
+			case kmip.AttributeNameName:
+				value = kmip.Name{
+					NameValue: rawValue,
+					NameType:  kmip.NameTypeUninterpretedTextString,
+				}
+			default:
+				value = rawValue
+			}
+
+			resp := exit.OnErr2(kmipClient.ModifyAttribute(id, attrName, value).ExecContext(cmd.Context()))
+			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
+				output.JsonPrint(resp)
+				return
+			}
+			printAttributeTable([]kmip.Attribute{resp.Attribute})
+		},
+	}
+	return cmd
+}
+
 func attributesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "attributes",
@@ -81,6 +144,8 @@ func attributesCommand() *cobra.Command {
 	}
 	cmd.AddCommand(
 		getAttributesCommand(),
+		modifyAttributeCommand(),
+		deleteAttributeCommand(),
 	)
 	return cmd
 }
