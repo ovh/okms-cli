@@ -12,7 +12,7 @@ import (
 func SetupEndpointFlags(command *cobra.Command, service string, init func(cmd *cobra.Command, cfg EndpointConfig)) {
 	service = strings.ToLower(service)
 	desc := "KMS endpoint URL"
-	if service != "" && service != "http" {
+	if service != "" && service != "http" && service != "restapi" {
 		desc = fmt.Sprintf("Endpoint address to %s", service)
 	}
 	command.PersistentFlags().String("endpoint", "", desc)

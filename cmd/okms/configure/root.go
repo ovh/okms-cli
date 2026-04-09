@@ -42,21 +42,21 @@ func CreateCommand() *cobra.Command {
 }
 
 func Run(profile string) {
-	choice := exit.OnErr2(pterm.DefaultInteractiveSelect.WithOptions([]string{"HTTP", "KMIP"}).Show("Select a protocol to configure"))
+	choice := exit.OnErr2(pterm.DefaultInteractiveSelect.WithOptions([]string{"REST-API", "KMIP"}).Show("Select a protocol to configure"))
 	switch choice {
-	case "HTTP":
-		config.ReadUserInput("Endpoint", "http.endpoint", profile, config.ValidateURL)
-		config.ReadUserInput("CA file", "http.ca", profile, config.ValidateFileExists.AllowEmpty())
+	case "REST-API":
+		config.ReadUserInput("Endpoint", "restapi.endpoint", profile, config.ValidateURL)
+		config.ReadUserInput("CA file", "restapi.ca", profile, config.ValidateFileExists.AllowEmpty())
 		authChoice := exit.OnErr2(pterm.DefaultInteractiveSelect.WithOptions([]string{"mtls", "token"}).Show("Select authentication to configure"))
 		switch authChoice {
 		case "mtls":
-			config.SetConfigKey(profile, "http.auth.type", "mtls")
-			config.ReadUserInput("Certificate file", "http.auth.cert", profile, config.ValidateFileExists)
-			config.ReadUserInput("Private key file", "http.auth.key", profile, config.ValidateFileExists)
+			config.SetConfigKey(profile, "restapi.auth.type", "mtls")
+			config.ReadUserInput("Certificate file", "restapi.auth.cert", profile, config.ValidateFileExists)
+			config.ReadUserInput("Private key file", "restapi.auth.key", profile, config.ValidateFileExists)
 		case "token":
-			config.SetConfigKey(profile, "http.auth.type", "token")
-			config.ReadUserInput("Token", "http.auth.token", profile, config.ValidateNotEmpty)
-			config.ReadUserInput("okmsId", "http.auth.okmsId", profile, config.ValidateUUID)
+			config.SetConfigKey(profile, "restapi.auth.type", "token")
+			config.ReadUserInput("Token", "restapi.auth.token", profile, config.ValidateNotEmpty)
+			config.ReadUserInput("okmsId", "restapi.auth.okmsId", profile, config.ValidateUUID)
 		}
 	case "KMIP":
 		config.ReadUserInput("CA file", "kmip.ca", profile, config.ValidateFileExists.AllowEmpty())

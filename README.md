@@ -110,7 +110,7 @@ version: 1
 profile: default # Name of the active profile
 profiles:
   default:
-    http:
+    restapi:
       endpoint: https://myserver.acme.com
       ca: /path/to/public-ca.crt # Optional if the CA is in system store
       auth:
@@ -128,10 +128,10 @@ profiles:
 
 These settings can be overwritten using environment variables:
 
-- KMS_HTTP_ENDPOINT
-- KMS_HTTP_CA
-- KMS_HTTP_CERT
-- KMS_HTTP_KEY
+- KMS_RESTAPI_ENDPOINT
+- KMS_RESTAPI_CA
+- KMS_RESTAPI_CERT
+- KMS_RESTAPI_KEY
 and
 - KMS_KMIP_ENDPOINT
 - KMS_KMIP_CA
@@ -140,10 +140,10 @@ and
 
 ```bash
 # REST API
-export KMS_HTTP_ENDPOINT=https://myserver.acme.com
-export KMS_HTTP_CA=/path/to/certs/ca.crt
-export KMS_HTTP_CERT=/path/to/certs/user.crt
-export KMS_HTTP_KEY=/path/to/certs/user.key
+export KMS_RESTAPI_ENDPOINT=https://myserver.acme.com
+export KMS_RESTAPI_CA=/path/to/certs/ca.crt
+export KMS_RESTAPI_CERT=/path/to/certs/user.crt
+export KMS_RESTAPI_KEY=/path/to/certs/user.key
 
 # KMIP
 export KMS_KMIP_ENDPOINT=myserver.acme.com:5696
