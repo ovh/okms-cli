@@ -35,7 +35,7 @@ func SetupRestApiFlags(command *cobra.Command, cust CustomizeFunc) {
 		f = cust(command)
 	}
 
-	config.SetupEndpointFlags(command, "http", func(command *cobra.Command, cfg config.EndpointConfig) {
+	config.SetupEndpointFlags(command, "restapi", func(command *cobra.Command, cfg config.EndpointConfig) {
 		okmsId = cfg.Auth.GetOkmsId()
 		clientCfg := okms.ClientConfig{
 			Timeout: timeout,

@@ -2,7 +2,7 @@ version: 1
 profile: default # Name of the active profile
 profiles:
   default:
-    http:
+    restapi:
       endpoint: https://myserver.acme.com
       ca: /path/to/public-ca.crt # Optional if the CA is in system store
       auth:
@@ -17,7 +17,7 @@ profiles:
         cert: /path/to/domain/cert.pem
         key: /path/to/domain/key.pem
   my-profile:
-    http:
+    restapi:
       endpoint: https://my-profile.kms.ovh:8080
       ca: /path/to/public-ca.crt
       auth:

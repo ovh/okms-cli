@@ -140,21 +140,45 @@ func loadV1(command *cobra.Command, service string) EndpointConfig {
 	}
 
 	envPrefix := "KMS_" + strings.ToUpper(service)
-	k := k.Cut(fmt.Sprintf("profiles.%s.%s", profile, service))
+	profilePrefix := fmt.Sprintf("profiles.%s.", profile)
 
-	ep := GetString(k, "endpoint", envPrefix+"_ENDPOINT", command.Flags().Lookup("endpoint"))
+	// For the "restapi" service, transparently fall back to the legacy "http"
+	// section when the new key is absent, so that existing config files and
+	// KMS_HTTP_* environment variables continue to work unchanged.
+	svcKey := k.Cut(profilePrefix + service)
+	if service == "restapi" && !k.Exists(profilePrefix+service) {
+		if k.Exists(profilePrefix + "http") {
+			svcKey = k.Cut(profilePrefix + "http")
+		}
+		// Always allow KMS_HTTP_* as a fallback for KMS_RESTAPI_*.
+		envPrefix = resolveEnvPrefix("KMS_RESTAPI", "KMS_HTTP")
+	}
+
+	ep := GetString(svcKey, "endpoint", envPrefix+"_ENDPOINT", command.Flags().Lookup("endpoint"))
 	if ep == "" {
 		exit.OnErr(errors.New("Missing endpoint address parameter"))
 	}
-	caFile := GetString(k, "ca", envPrefix+"_CA", command.Flags().Lookup("ca"))
+	caFile := GetString(svcKey, "ca", envPrefix+"_CA", command.Flags().Lookup("ca"))
 
-	authMethod := GetString(k, "auth.type", envPrefix+"_AUTH_METHOD", command.Flags().Lookup("auth-method"))
+	authMethod := GetString(svcKey, "auth.type", envPrefix+"_AUTH_METHOD", command.Flags().Lookup("auth-method"))
 
 	return EndpointConfig{
 		Endpoint: ep,
 		CaFile:   exit.OnErr2(utils.ExpandTilde(caFile)),
-		Auth:     buildAuthMethod(service, authMethod, command, k.Cut("auth"), envPrefix),
+		Auth:     buildAuthMethod(service, authMethod, command, svcKey.Cut("auth"), envPrefix),
 	}
+}
+
+// resolveEnvPrefix returns primary if any environment variable with that prefix
+// is set, otherwise it returns fallback. This allows KMS_HTTP_* variables to
+// act as a transparent alias for KMS_RESTAPI_* variables.
+func resolveEnvPrefix(primary, fallback string) string {
+	for _, env := range os.Environ() {
+		if strings.HasPrefix(env, primary+"_") {
+			return primary
+		}
+	}
+	return fallback
 }
 
 func GetString(k *koanf.Koanf, key, env string, flag *pflag.Flag) string {
@@ -232,7 +256,7 @@ func migrateV0toV1(k *koanf.Koanf) *koanf.Koanf {
 		prefix := "profiles." + key + "."
 		pk := k.Cut(key)
 
-		migrateServiceConfigV0toV1(pk, nk, prefix+"http.")
+		migrateServiceConfigV0toV1(pk, nk, prefix+"restapi.")
 
 		for _, svc := range pk.MapKeys("") {
 			pk := pk.Cut(svc)
