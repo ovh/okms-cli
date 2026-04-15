@@ -9,7 +9,7 @@ func CreateCommand(cust common.CustomizeFunc) *cobra.Command {
 	var kvCmd = &cobra.Command{
 		Use:     "vault",
 		Aliases: []string{"kv"},
-		Short:   "This command has subcommands for interacting with KMS's key-value store.",
+		Short:   "Manage secrets through Hashicorp Vault API",
 	}
 
 	common.SetupRestApiFlags(kvCmd, cust)
