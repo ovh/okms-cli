@@ -90,8 +90,8 @@ Available Commands:
   help        Help about any command
   keys        Manage domain keys
   kmip        Manage kmip objects
-  secrets     This command has subcommands for interacting with KMS's key-value store.
-  vault       This command has subcommands for interacting with KMS's key-value store.
+  secrets     Managed secrets
+  vault       Manage secrets through Hashicorp Vault API
   version     Print the version information
   x509        Generate, and sign x509 certificates
 
