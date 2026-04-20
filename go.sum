@@ -119,8 +119,8 @@ github.com/olekukonko/tablewriter v1.1.4 h1:ORUMI3dXbMnRlRggJX3+q7OzQFDdvgbN9nVW
 github.com/olekukonko/tablewriter v1.1.4/go.mod h1:+kedxuyTtgoZLwif3P1Em4hARJs+mVnzKxmsCL/C5RY=
 github.com/ovh/kmip-go v0.7.2 h1:O+gK7el92gpC57WzYGeyAPySeMPIDEWDUeT1IvkdrF0=
 github.com/ovh/kmip-go v0.7.2/go.mod h1:0UZqQCIlZ4/W+cYFbmtRwZ4if582CjlEvy86Xx+ob8E=
-github.com/ovh/okms-sdk-go v0.5.2-0.20260128141747-b962b50c8256 h1:2GndJQhvISecnOwmbsiafPTyYfQ0dhM59h4M5ZEoI98=
-github.com/ovh/okms-sdk-go v0.5.2-0.20260128141747-b962b50c8256/go.mod h1:IKGaI2g0PB/q7LcFQ+TyMX7DPVVMPY9+DYO5+iMVDd4=
+github.com/ovh/okms-sdk-go v0.5.2 h1:5ppQ+Ugfw5eG6Q8PEgqKcUc8rIdlLZTELEZdqlFkGyc=
+github.com/ovh/okms-sdk-go v0.5.2/go.mod h1:uUmv80Z8cfHwhnZQn2pUtYCL8EOMvtXXnIPVu+FXZhc=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
