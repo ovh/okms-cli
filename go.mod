@@ -1,6 +1,6 @@
 module github.com/ovh/okms-cli
 
-go 1.25.0
+go 1.25.5
 
 require (
 	github.com/go-piv/piv-go/v2 v2.6.0
@@ -10,7 +10,7 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.4
 	github.com/olekukonko/tablewriter v1.1.4
-	github.com/ovh/kmip-go v0.7.2
+	github.com/ovh/kmip-go v0.8.0
 	github.com/ovh/okms-sdk-go v0.5.2-0.20260128141747-b962b50c8256
 	github.com/pterm/pterm v0.12.83
 	github.com/schollz/progressbar/v3 v3.19.0
