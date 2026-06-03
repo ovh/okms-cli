@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/olekukonko/tablewriter"
+	"github.com/ovh/okms-sdk-go"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/ovh/okms-cli/cmd/okms/common"
@@ -89,6 +90,7 @@ func newAddServiceKeyCmd() *cobra.Command {
 		curveType       restflags.CurveType
 		protectionLevel restflags.ProtectionLevel
 		keyContext      string
+		keyID           string
 	)
 
 	cmd := &cobra.Command{
@@ -120,6 +122,11 @@ func newAddServiceKeyCmd() *cobra.Command {
 				body.Size = &keySizeEnum
 			}
 
+			if keyID != "" {
+				id := exit.OnErr2(uuid.Parse(keyID))
+				body.Id = &id
+			}
+
 			resp := exit.OnErr2(common.Client().CreateImportServiceKey(cmd.Context(), common.GetOkmsId(), nil, body))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
 				output.JsonPrint(resp)
@@ -136,6 +143,7 @@ func newAddServiceKeyCmd() *cobra.Command {
 	cmd.Flags().Int32Var(&keySize, "size", 256, "Size of the key to be generated")
 	cmd.Flags().Var(&curveType, "curve", "Curve type for Elliptic Curve (ec) keys.")
 	cmd.Flags().Var(&protectionLevel, "protectionLevel", "Level of protection of the key's storage (software, HSM or Managed HSM).")
+	cmd.Flags().StringVar(&keyID, "keyId", "", "Optional key ID (UUID)")
 	cmd.MarkFlagsMutuallyExclusive("size", "curve")
 	return cmd
 }
@@ -222,6 +230,7 @@ func newImportServiceKeyCmd() *cobra.Command {
 		keyUsage   restflags.KeyUsageList
 		symmetric  bool
 		keyContext string
+		keyID      string
 	)
 	cmd := &cobra.Command{
 		Use:   "import NAME KEY",
@@ -232,12 +241,19 @@ func newImportServiceKeyCmd() *cobra.Command {
 				keyContext = args[0]
 			}
 			key := flagsmgmt.BytesFromArg(args[1], 8192)
+
+			var opts []okms.ServiceKeyOption
+			if keyID != "" {
+				id := exit.OnErr2(uuid.Parse(keyID))
+				opts = append(opts, okms.WithKeyID(id))
+			}
+
 			var resp *types.GetServiceKeyResponse
 			if !symmetric {
-				resp = exit.OnErr2(common.Client().ImportKeyPairPEM(cmd.Context(), common.GetOkmsId(), key, args[0], keyContext, keyUsage.ToCryptographicUsage()...))
+				resp = exit.OnErr2(common.Client().ImportKeyPairPEM(cmd.Context(), common.GetOkmsId(), key, args[0], keyContext, keyUsage.ToCryptographicUsage(), opts...))
 			} else {
 				k := exit.OnErr2(base64.StdEncoding.DecodeString(string(key)))
-				resp = exit.OnErr2(common.Client().ImportKey(cmd.Context(), common.GetOkmsId(), k, args[0], keyContext, keyUsage.ToCryptographicUsage()...))
+				resp = exit.OnErr2(common.Client().ImportKey(cmd.Context(), common.GetOkmsId(), k, args[0], keyContext, keyUsage.ToCryptographicUsage(), opts...))
 			}
 
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
