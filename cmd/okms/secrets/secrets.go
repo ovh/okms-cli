@@ -77,7 +77,7 @@ func kvPutCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			body := types.PostSecretRequest{Data: data}
+			body := types.PostSecretRequest{Data: &data}
 			if cas > -1 {
 				c := utils.ToUint32(cas)
 				body.Options = &types.PostSecretOptions{Cas: &c}
@@ -115,7 +115,7 @@ func kvPatchCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			body := types.PostSecretRequest{Data: data}
+			body := types.PostSecretRequest{Data: &data}
 			if cas > -1 {
 				c := utils.ToUint32(cas)
 				body.Options = &types.PostSecretOptions{Cas: &c}
