@@ -234,7 +234,7 @@ func newImportServiceKeyCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "import NAME KEY",
-		Short: "Import a private base64 encoded symmetric key or a PEM encoded assymmetric key",
+		Short: "Import a private base64 encoded symmetric key or a PEM encoded asymmetric key",
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if keyContext == "" {
