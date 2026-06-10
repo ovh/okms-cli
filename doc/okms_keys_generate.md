@@ -14,6 +14,7 @@ okms keys generate NAME [flags]
   -h, --help                                                                                       help for generate
       --size int32                                                                                 Size of the key to be generated (default 256)
       --type oct|rsa|ec                                                                            Defines type of a key to be created. (default oct)
+      --keyId string                                                                               Optional key ID (UUID)
       --usage Combination of: sign|verify|encrypt|decrypt|wrapKey|unwrapKey|deriveKey|deriveBits   Key operations (Key usage).
 ```
 

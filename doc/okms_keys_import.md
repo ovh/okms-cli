@@ -1,6 +1,6 @@
 ## okms keys import
 
-Import a private base64 encoded symmetric key or a PEM encoded assymmetric key
+Import a private base64 encoded symmetric key or a PEM encoded asymmetric key
 
 ```
 okms keys import NAME KEY [flags]
@@ -12,6 +12,7 @@ okms keys import NAME KEY [flags]
       --context string                                                                             Context of the key. Defaults to the key's name
   -h, --help                                                                                       help for import
   -S, --symmetric                                                                                  Import a base64 encoded symmetric key
+      --keyId string                                                                               Optional key ID (UUID)
       --usage Combination of: sign|verify|encrypt|decrypt|wrapKey|unwrapKey|deriveKey|deriveBits   Key operations (Key usage).
 ```
 

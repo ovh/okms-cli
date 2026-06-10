@@ -21,7 +21,7 @@ It supports both REST API and KMIP protocol.
 <!-- TOC --><a name="installation"></a>
 # Installation
 1. Download [latest release](https://github.com/ovh/okms-cli/releases/latest)
-2. Optionaly check checksums against checksums.txt
+2. Optionally check checksums against checksums.txt
 3. Untar / unzip the archive somewhere
 4. Add the containing folder to your `PATH` environment variable
 5. Check the [okms cli documentation](./doc/okms.md)
