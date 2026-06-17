@@ -75,6 +75,7 @@ func NewCommand(cust CustomizeFunc) *cobra.Command {
 		getCommand(),
 		registerCommand(),
 		rekeyCommand(),
+		explorerCommand(),
 	)
 
 	return cmd
