@@ -5,16 +5,18 @@ Manage domain keys
 ### Options
 
 ```
-      --auth-method mtls   Authentication method to use
-      --ca string          Path to CA bundle
-      --cert string        Path to certificate
-  -d, --debug              Activate debug mode
-      --endpoint string    KMS endpoint URL
-  -h, --help               help for keys
-      --key string         Path to key file
-      --output text|json   The formatting style for command output. (default text)
-      --retry uint32       Maximum number of HTTP retries (default 4)
-      --timeout duration   Timeout duration for HTTP requests (default 30s)
+      --auth-method mtls|token   Authentication method to use
+      --ca string                Path to CA bundle
+      --cert string              Path to certificate
+  -d, --debug                    Activate debug mode
+      --endpoint string          KMS endpoint URL
+  -h, --help                     help for keys
+      --key string               Path to key file
+      --okmsId string            OKMS id
+      --output text|json         The formatting style for command output. (default text)
+      --retry uint32             Maximum number of HTTP retries (default 4)
+      --timeout duration         Timeout duration for HTTP requests (default 30s)
+      --token string             Token
 ```
 
 ### Options inherited from parent commands
