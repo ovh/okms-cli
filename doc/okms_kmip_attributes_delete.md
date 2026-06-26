@@ -1,0 +1,38 @@
+## okms kmip attributes delete
+
+Delete an existing attribute of an object
+
+```
+okms kmip attributes delete ID ATTRIBUTE_NAME [flags]
+```
+
+### Options
+
+```
+  -h, --help          help for delete
+      --index int32   Index of the attribute instance to delete (default 0)
+```
+
+### Options inherited from parent commands
+
+```
+      --auth-method mtls|token      Authentication method to use
+      --ca string                   Path to CA bundle
+      --cert string                 Path to certificate
+  -c, --config string               Path to a non default configuration file
+  -d, --debug                       Activate debug mode
+      --endpoint string             Endpoint address to kmip
+      --key string                  Path to key file
+      --no-ccv                      Disable kmip client correlation value
+      --okmsId string               OKMS id
+      --output text|json            The formatting style for command output. (default text)
+      --profile string              Name of the profile (default "default")
+      --timeout duration            Timeout duration for KMIP requests
+      --tls12-ciphers stringArray   List of TLS 1.2 ciphers to use
+      --token string                Token
+```
+
+### SEE ALSO
+
+* [okms kmip attributes](okms_kmip_attributes.md)	 - Manage an object's attributes
+

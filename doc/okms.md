@@ -16,6 +16,8 @@
 * [okms configure](okms_configure.md)	 - Configure CLI options
 * [okms keys](okms_keys.md)	 - Manage domain keys
 * [okms kmip](okms_kmip.md)	 - Manage kmip objects
+* [okms secrets](okms_secrets.md)	 - Managed secrets
+* [okms vault](okms_vault.md)	 - Manage secrets through Hashicorp Vault API
 * [okms version](okms_version.md)	 - Print the version information
 * [okms x509](okms_x509.md)	 - Generate, and sign x509 certificates
 
