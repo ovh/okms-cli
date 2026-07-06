@@ -14,7 +14,7 @@ require (
 	github.com/ovh/okms-sdk-go v0.5.3
 	github.com/phsym/kmip-explorer v0.8.0
 	github.com/pterm/pterm v0.12.83
-	github.com/schollz/progressbar/v3 v3.19.0
+	github.com/schollz/progressbar/v3 v3.19.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
