@@ -10,9 +10,8 @@ import (
 type ProtectionLevel types.ProtectionLevelEnum
 
 const (
-	SOFTWARE   ProtectionLevel = ProtectionLevel(types.SOFTWARE)
-	HSM        ProtectionLevel = ProtectionLevel(types.HSM)
-	MANAGEDHSM ProtectionLevel = ProtectionLevel(types.MANAGEDHSM)
+	SOFTWARE ProtectionLevel = ProtectionLevel(types.SOFTWARE)
+	HSM      ProtectionLevel = ProtectionLevel(types.HSM)
 )
 
 func (e *ProtectionLevel) String() string {
@@ -25,16 +24,14 @@ func (e *ProtectionLevel) Set(v string) error {
 		*e = SOFTWARE
 	case "hsm":
 		*e = HSM
-	case "managedHsm":
-		*e = MANAGEDHSM
 	default:
-		return errors.New(`must be one of "soft", "hsm", "managedHsm"`)
+		return errors.New(`must be one of "soft", "hsm"`)
 	}
 	return nil
 }
 
 func (e *ProtectionLevel) Type() string {
-	return "soft|hsm|managedHsm"
+	return "soft|hsm"
 }
 
 func (e ProtectionLevel) RestModel() types.ProtectionLevelEnum {

@@ -382,6 +382,107 @@ testcases:
         assertions:
           - result.code ShouldEqual 0
 
+      - name: Import RSA public key
+        type: okms-cmd
+        args: keys import --usage wrapKey test-import-rsa-pub @testdata/rsa_x509.pub.pem
+        assertions:
+          - result.code ShouldEqual 0
+
+  - name: Wrapped key export and import
+    steps:
+      - name: Create the transport (wrapping) RSA key
+        type: okms-cmd
+        args: keys new --type rsa --size 2048 test-transport --usage wrapKey,unwrapKey
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          wrapKeyId:
+            from: result.systemoutjson.id
+      - name: Create an extractable AES key to export
+        type: okms-cmd
+        args: keys new --type oct --size 256 test-wrap-src --usage encrypt,decrypt,wrapKey,unwrapKey --extractable
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          srcKeyId:
+            from: result.systemoutjson.id
+      - name: Get wrapped key in RAW format
+        type: okms-cmd
+        format: text
+        args: keys get {{ .srcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format RAW
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldNotBeEmpty
+        vars:
+          rawCiphertext:
+            from: result.systemout
+      - name: Import wrapped RAW key
+        type: okms-cmd
+        info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
+        args: keys import --usage encrypt,decrypt test-import-wrapped-raw {{ .rawCiphertext }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format RAW
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Get wrapped key in JWK format
+        type: okms-cmd
+        format: text
+        info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
+        args: keys get {{ .srcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format JWK
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldNotBeEmpty
+        vars:
+          jwkCiphertext:
+            from: result.systemout
+      - name: Import wrapped JWK key
+        type: okms-cmd
+        info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
+        args: keys import --usage encrypt,decrypt,wrapKey,unwrapKey test-import-wrapped-jwk {{ .jwkCiphertext }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format JWK
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Create an extractable RSA key to export
+        type: okms-cmd
+        info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
+        args: keys new --type rsa --size 2048 test-wrap-src-rsa --usage sign,verify --extractable
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          rsaSrcKeyId:
+            from: result.systemoutjson.id
+      - name: Get wrapped RSA key in PKCS8 format
+        type: okms-cmd
+        format: text
+        info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
+        args: keys get {{ .rsaSrcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format PKCS8
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldNotBeEmpty
+        vars:
+          pkcs8Ciphertext:
+            from: result.systemout
+      - name: Import wrapped PKCS8 key
+        type: okms-cmd
+        info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
+        args: keys import --usage sign,verify test-import-wrapped-pkcs8 {{ .pkcs8Ciphertext }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format PKCS8
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Get wrapped RSA key in PKCS1 format
+        type: okms-cmd
+        format: text
+        info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
+        args: keys get {{ .rsaSrcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format PKCS1
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldNotBeEmpty
+        vars:
+          pkcs1Ciphertext:
+            from: result.systemout
+      - name: Import wrapped PKCS1 key
+        type: okms-cmd
+        info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
+        args: keys import --usage sign,verify test-import-wrapped-pkcs1 {{ .pkcs1Ciphertext }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format PKCS1
+        assertions:
+          - result.code ShouldEqual 0
+
   - name: Delete the keys
     steps:
       - name: Try delete active AES key

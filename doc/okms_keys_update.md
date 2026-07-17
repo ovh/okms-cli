@@ -9,6 +9,7 @@ okms keys update KEY-ID [flags]
 ### Options
 
 ```
+      --extractable   Set whether the key and its material can be extracted. Set to false to block plain or wrapped key export
   -h, --help          help for update
       --name string   Update key with a new name
 ```
