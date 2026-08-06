@@ -11,9 +11,10 @@ okms keys generate NAME [flags]
 ```
       --context string                                                                             Context of the key. Defaults to the key's name
       --curve P-256|P-384|P-521                                                                    Curve type for Elliptic Curve (ec) keys.
+      --extractable                                                                                Whether the key and its material can be extracted (exported plain or wrapped). Defaults to false.
   -h, --help                                                                                       help for generate
       --keyId string                                                                               Optional key ID (UUID)
-      --protectionLevel soft|hsm|managedHsm                                                        Level of protection of the key's storage (software, HSM or Managed HSM).
+      --protectionLevel soft|hsm                                                                   Level of protection of the key's storage (software or HSM).
       --size int32                                                                                 Size of the key to be generated (default 256)
       --type oct|rsa|ec                                                                            Defines type of a key to be created. (default oct)
       --usage Combination of: sign|verify|encrypt|decrypt|wrapKey|unwrapKey|deriveKey|deriveBits   Key operations (Key usage).

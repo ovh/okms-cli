@@ -11,7 +11,7 @@ require (
 	github.com/knadh/koanf/v2 v2.3.5
 	github.com/olekukonko/tablewriter v1.1.4
 	github.com/ovh/kmip-go v0.9.2
-	github.com/ovh/okms-sdk-go v0.5.3
+	github.com/ovh/okms-sdk-go v0.5.4
 	github.com/phsym/kmip-explorer v0.8.0
 	github.com/pterm/pterm v0.12.83
 	github.com/schollz/progressbar/v3 v3.19.1
