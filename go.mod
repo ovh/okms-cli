@@ -6,7 +6,7 @@ require (
 	github.com/go-piv/piv-go/v2 v2.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-secure-stdlib/kv-builder v0.1.2
-	github.com/knadh/koanf/parsers/yaml v1.1.0
+	github.com/knadh/koanf/parsers/yaml v1.1.1
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.6
 	github.com/olekukonko/tablewriter v1.1.4
