@@ -9,7 +9,7 @@ require (
 	github.com/knadh/koanf/parsers/yaml v1.1.1
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.6
-	github.com/olekukonko/tablewriter v1.1.4
+	github.com/olekukonko/tablewriter v1.1.5
 	github.com/ovh/kmip-go v0.9.2
 	github.com/ovh/okms-sdk-go v0.5.4
 	github.com/phsym/kmip-explorer v0.8.0
