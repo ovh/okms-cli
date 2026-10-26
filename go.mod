@@ -12,7 +12,7 @@ require (
 	github.com/olekukonko/tablewriter v1.1.5
 	github.com/ovh/kmip-go v0.9.2
 	github.com/ovh/okms-sdk-go v0.5.4
-	github.com/phsym/kmip-explorer v0.8.0
+	github.com/phsym/kmip-explorer v0.8.1
 	github.com/pterm/pterm v0.12.84
 	github.com/schollz/progressbar/v3 v3.19.1
 	github.com/spf13/cobra v1.10.2
