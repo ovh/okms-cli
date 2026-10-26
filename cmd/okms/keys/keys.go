@@ -57,7 +57,7 @@ func newListServiceKeysCmd() *cobra.Command {
 				output.JsonPrint(keys)
 			} else {
 				table := tablewriter.NewWriter(os.Stdout)
-				table.Header([]string{"ID", "Name", "Type", "Class", "State", "Created At"})
+				table.Header([]string{"ID", "Name", "Type", "Class", "Protection Level", "State", "Created At"})
 				for _, key := range keys.ObjectsList {
 					keyAttr := getCommonKeyAttributes(&key)
 					exit.OnErr(table.Append([]string{
@@ -65,6 +65,7 @@ func newListServiceKeysCmd() *cobra.Command {
 						key.Name,
 						string(key.Type),
 						string(keyAttr.Class),
+						string(key.ProtectionLevel),
 						string(keyAttr.State),
 						keyAttr.CreatedAt.Format(time.DateTime),
 						// strconv.Itoa(int(*key.KeySize)),
@@ -175,10 +176,14 @@ func newGetServiceKeyCmd() *cobra.Command {
 				if !algo.Valid() {
 					exit.OnErr(fmt.Errorf("Invalid wrapping algorithm %q, expected one of [RSA-OAEP|RSA-OAEP-256]", wrappingAlgorithm))
 				}
-				format := types.KeyFormatTypes(wrappedKeyFormat)
-				if !format.Valid() {
-					exit.OnErr(fmt.Errorf("Invalid wrapped key format %q, expected one of [JWK|RAW|PKCS1|PKCS8]", wrappedKeyFormat))
+				if !cmd.Flags().Changed("wrapped-key-format") {
+					// A key in the HSM is wrapped in the HSM's native encoding, so the format is omitted.
+					key := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), common.GetOkmsId(), keyId, nil))
+					if key.ProtectionLevel == types.HSM {
+						wrappedKeyFormat = ""
+					}
 				}
+				format := exit.OnErr2(parseWrappedKeyFormat(wrappedKeyFormat))
 
 				wrappedKeys := exit.OnErr2(common.Client().GetWrappedServiceKey(cmd.Context(), common.GetOkmsId(), keyId, wrapKeyId, format, algo))
 				if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
@@ -202,7 +207,7 @@ func newGetServiceKeyCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&wrappingKeyID, "wrapping-key-id", "", "ID of the transport (wrapping) key used to encrypt the exported key material. When set, the key is exported in wrapped form instead of returning metadata")
 	cmd.Flags().StringVar(&wrappingAlgorithm, "wrapping-algorithm", string(types.RSAOAEP256), "Key wrapping algorithm [RSA-OAEP|RSA-OAEP-256]")
-	cmd.Flags().StringVar(&wrappedKeyFormat, "wrapped-key-format", string(types.JWK), "Format of the plaintext key material before wrapping [JWK|RAW|PKCS1|PKCS8]")
+	cmd.Flags().StringVar(&wrappedKeyFormat, "wrapped-key-format", string(types.JWK), "Format of the plaintext key material before wrapping [JWK|RAW|PKCS1|PKCS8]. Defaults to JWK, or omitted for a key in the HSM, which only accepts RAW")
 
 	return cmd
 }
@@ -267,20 +272,7 @@ func newExportPublicKeyCmd() *cobra.Command {
 	return cmd
 }
 
-func newImportServiceKeyCmd() *cobra.Command {
-	var (
-		keyUsage         restflags.KeyUsageList
-		symmetric        bool
-		keyContext       string
-		keyID            string
-		wrappingKeyID    string
-		wrappedKeyFormat string
-		extractable      bool
-	)
-	cmd := &cobra.Command{
-		Use:   "import NAME KEY",
-		Short: "Import a symmetric, asymmetric (private or public), or wrapped key",
-		Long: `Import a key into the domain.
+const importKeyLong = `Import a key into the domain.
 
 There are two distinct import modes: plain import and wrapped import.
 
@@ -292,6 +284,7 @@ Plain import (default):
       without private material and can only be used for public operations
       (e.g. verify or encrypt).
     - a base64 encoded symmetric key, when --symmetric is set.
+  With --protectionLevel hsm, a public key can be imported into the HSM.
 
 Wrapped import (--wrapping-key-id):
   The key material never appears in the clear. KEY is wrapped (encrypted) key
@@ -301,9 +294,20 @@ Wrapped import (--wrapping-key-id):
   key that was wrapped [JWK|RAW|PKCS1|PKCS8]. The KMS unwraps the material and
   infers the key type, size and curve from it.
 
+  With --protectionLevel hsm, the key is unwrapped and stored in the HSM. The
+  transport key must then itself be an HSM key, and as the HSM never exposes the
+  unwrapped material, the key type must be declared with --type. The wrapped
+  material is the raw key bytes for an oct key, and a PKCS#8 DER private key for
+  an rsa or ec key. --wrapped-key-format is omitted by default, and only RAW is
+  accepted.
+
+Imported keys are extractable by default. Use --extractable=false to import a
+non-extractable key.
+
 In both modes KEY may be given inline, as @path to read from a file, or - to
-read from stdin.`,
-		Example: `  # Plain import of a PEM encoded RSA private key
+read from stdin.`
+
+const importKeyExample = `  # Plain import of a PEM encoded RSA private key
   okms keys import --usage sign,verify my-rsa @private.pem
 
   # Plain import of a base64 encoded symmetric key
@@ -312,10 +316,35 @@ read from stdin.`,
   # Plain import of a public-only key (verify/encrypt operations only)
   okms keys import --usage verify my-rsa-pub @public.pem
 
+  # Plain import of a public key into the HSM
+  okms keys import --usage verify --protectionLevel hsm my-hsm-rsa-pub @public.pem
+
   # Wrapped import of PKCS8 key material wrapped with transport key <transport-id>
   okms keys import --usage encrypt,decrypt --wrapping-key-id <transport-id> \
-      --wrapped-key-format PKCS8 my-imported @wrapped.jwe`,
-		Args: cobra.ExactArgs(2),
+      --wrapped-key-format PKCS8 my-imported @wrapped.jwe
+
+  # Wrapped import of an AES key into the HSM, wrapped with HSM transport key <hsm-transport-id>
+  okms keys import --usage encrypt,decrypt --wrapping-key-id <hsm-transport-id> \
+      --protectionLevel hsm --type oct my-hsm-aes @wrapped.jwe`
+
+func newImportServiceKeyCmd() *cobra.Command {
+	var (
+		keyUsage         restflags.KeyUsageList
+		symmetric        bool
+		keyContext       string
+		keyID            string
+		wrappingKeyID    string
+		wrappedKeyFormat string
+		extractable      bool
+		protectionLevel  restflags.ProtectionLevel
+		keyType          restflags.KeyType
+	)
+	cmd := &cobra.Command{
+		Use:     "import NAME KEY",
+		Short:   "Import a symmetric, asymmetric (private or public), or wrapped key",
+		Long:    importKeyLong,
+		Example: importKeyExample,
+		Args:    cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if keyContext == "" {
 				keyContext = args[0]
@@ -327,17 +356,27 @@ read from stdin.`,
 				id := exit.OnErr2(uuid.Parse(keyID))
 				opts = append(opts, okms.WithKeyID(id))
 			}
-			opts = append(opts, okms.WithExtractable(extractable))
+			// Only send the extractable flag when set, so that the KMS default applies otherwise.
+			if cmd.Flags().Changed("extractable") {
+				opts = append(opts, okms.WithExtractable(extractable))
+			}
+
+			if wrappingKeyID == "" {
+				if cmd.Flags().Changed("type") {
+					exit.OnErr(errors.New("--type is only supported for a wrapped import (--wrapping-key-id)"))
+				}
+				if protectionLevel != "" {
+					opts = append(opts, okms.WithProtectionLevel(protectionLevel.RestModel()))
+				}
+			}
 
 			var resp *types.GetServiceKeyResponse
 			switch {
 			case wrappingKeyID != "":
 				// KEY is wrapped (encrypted) key material as a JWE Compact Serialization string.
 				wrapKeyId := exit.OnErr2(uuid.Parse(wrappingKeyID))
-				format := types.KeyFormatTypes(wrappedKeyFormat)
-				if !format.Valid() {
-					exit.OnErr(fmt.Errorf("Invalid wrapped key format %q, expected one of [JWK|RAW|PKCS1|PKCS8]", wrappedKeyFormat))
-				}
+				format, wrapOpts := exit.OnErr3(wrappedImportOptions(protectionLevel, keyType, wrappedKeyFormat, cmd.Flags().Changed("wrapped-key-format")))
+				opts = append(opts, wrapOpts...)
 				ciphertext := strings.TrimSpace(string(key))
 				resp = exit.OnErr2(common.Client().ImportWrappedServiceKey(cmd.Context(), common.GetOkmsId(), wrapKeyId, ciphertext, format, args[0], keyContext, keyUsage.ToCryptographicUsage(), opts...))
 			case !symmetric:
@@ -360,9 +399,49 @@ read from stdin.`,
 	cmd.Flags().BoolVarP(&symmetric, "symmetric", "S", false, "Import a base64 encoded symmetric key")
 	cmd.Flags().StringVar(&wrappingKeyID, "wrapping-key-id", "", "ID of the transport (wrapping) key that was used to wrap KEY. When set, KEY is imported as wrapped (JWE) key material and its type is inferred by the KMS")
 	cmd.Flags().StringVar(&wrappedKeyFormat, "wrapped-key-format", string(types.JWK), "Format of the plaintext key material that was wrapped [JWK|RAW|PKCS1|PKCS8]")
-	cmd.Flags().BoolVar(&extractable, "extractable", false, "Whether the imported key and its material can be extracted (exported plain or wrapped). Defaults to false.")
+	cmd.Flags().BoolVar(&extractable, "extractable", true, "Whether the imported key and its material can be extracted (exported plain or wrapped). Once false, it cannot be set back to true")
+	cmd.Flags().Var(&protectionLevel, "protectionLevel", "Level of protection of the imported key's storage (software or HSM). Defaults to software")
+	cmd.Flags().Var(&keyType, "type", "Type of the imported key. Wrapped import only, required with --protectionLevel hsm")
 	cmd.MarkFlagsMutuallyExclusive("symmetric", "wrapping-key-id")
 	return cmd
+}
+
+// wrappedImportOptions validates the parameters of a wrapped import, and returns the key format along with the options
+// setting the protection level and key type.
+func wrappedImportOptions(protectionLevel restflags.ProtectionLevel, keyType restflags.KeyType, wrappedKeyFormat string, formatSet bool) (types.KeyFormatTypes, []okms.ServiceKeyOption, error) {
+	if protectionLevel == restflags.HSM {
+		// The HSM unwraps into its native encoding, so it cannot infer the key type,
+		// and the key format is either omitted or RAW.
+		if keyType == "" {
+			return "", nil, errors.New("--type is required to import a wrapped key into the HSM")
+		}
+		if !formatSet {
+			wrappedKeyFormat = ""
+		} else if types.KeyFormatTypes(wrappedKeyFormat) != types.RAW {
+			return "", nil, fmt.Errorf("Invalid wrapped key format %q for an HSM import, only RAW is accepted", wrappedKeyFormat)
+		}
+	}
+	format, err := parseWrappedKeyFormat(wrappedKeyFormat)
+	if err != nil {
+		return "", nil, err
+	}
+	var opts []okms.ServiceKeyOption
+	if protectionLevel != "" {
+		opts = append(opts, okms.WithProtectionLevel(protectionLevel.RestModel()))
+	}
+	if keyType != "" {
+		opts = append(opts, okms.WithKeyType(keyType.RestModel()))
+	}
+	return format, opts, nil
+}
+
+// parseWrappedKeyFormat validates a wrapped key format. An empty format is accepted, and omitted from the request.
+func parseWrappedKeyFormat(v string) (types.KeyFormatTypes, error) {
+	format := types.KeyFormatTypes(v)
+	if format != "" && !format.Valid() {
+		return "", fmt.Errorf("Invalid wrapped key format %q, expected one of [JWK|RAW|PKCS1|PKCS8]", v)
+	}
+	return format, nil
 }
 
 func printServiceKey(resp *types.GetServiceKeyResponse) {
@@ -519,7 +598,7 @@ func newUpdateKeyCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&name, "name", "", "Update key with a new name")
-	cmd.Flags().BoolVar(&extractable, "extractable", false, "Set whether the key and its material can be extracted. Set to false to block plain or wrapped key export")
+	cmd.Flags().BoolVar(&extractable, "extractable", false, "Set whether the key and its material can be extracted. Set to false to block plain or wrapped key export. Once false, it cannot be set back to true")
 	cmd.MarkFlagsOneRequired("name", "extractable")
 
 	return cmd
