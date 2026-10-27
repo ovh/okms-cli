@@ -483,6 +483,59 @@ testcases:
         assertions:
           - result.code ShouldEqual 0
 
+  - name: Wrapped key export and import in HSM
+    steps:
+      - name: Create the HSM transport (wrapping) RSA key
+        type: okms-cmd
+        args: keys new --type rsa --size 2048 test-hsm-transport --usage wrapKey,unwrapKey --protectionLevel hsm
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.protectionLevel ShouldEqual HSM
+        vars:
+          hsmWrapKeyId:
+            from: result.systemoutjson.id
+      - name: Create an extractable HSM AES key to export
+        type: okms-cmd
+        args: keys new --type oct --size 256 test-hsm-wrap-src --usage encrypt,decrypt --protectionLevel hsm --extractable
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          hsmSrcKeyId:
+            from: result.systemoutjson.id
+      - name: Get wrapped HSM key, format omitted
+        type: okms-cmd
+        format: text
+        args: keys get {{ .hsmSrcKeyId }} --wrapping-key-id {{ .hsmWrapKeyId }}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldNotBeEmpty
+        vars:
+          hsmCiphertext:
+            from: result.systemout
+      - name: Import wrapped key in HSM without type
+        type: okms-cmd
+        args: keys import --usage encrypt,decrypt test-hsm-import-notype {{ .hsmCiphertext }} --wrapping-key-id {{ .hsmWrapKeyId }} --protectionLevel hsm
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Import wrapped key in HSM, format omitted
+        type: okms-cmd
+        args: keys import --usage encrypt,decrypt test-hsm-import {{ .hsmCiphertext }} --wrapping-key-id {{ .hsmWrapKeyId }} --protectionLevel hsm --type oct
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.protectionLevel ShouldEqual HSM
+      - name: Import RSA public key in HSM
+        type: okms-cmd
+        args: keys import --usage verify test-hsm-import-rsa-pub @testdata/rsa_x509.pub.pem --protectionLevel hsm
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.protectionLevel ShouldEqual HSM
+      - name: Import wrapped key in HSM, RAW format
+        type: okms-cmd
+        args: keys import --usage encrypt,decrypt test-hsm-import-raw {{ .hsmCiphertext }} --wrapping-key-id {{ .hsmWrapKeyId }} --protectionLevel hsm --type oct --wrapped-key-format RAW --extractable=false
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.protectionLevel ShouldEqual HSM
+
   - name: Delete the keys
     steps:
       - name: Try delete active AES key
