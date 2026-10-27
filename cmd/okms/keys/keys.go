@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,7 +58,7 @@ func newListServiceKeysCmd() *cobra.Command {
 				output.JsonPrint(keys)
 			} else {
 				table := tablewriter.NewWriter(os.Stdout)
-				table.Header([]string{"ID", "Name", "Type", "Class", "Protection Level", "State", "Created At"})
+				table.Header([]string{"ID", "Name", "Type", "Class", "Protection Level", "State", "Extractable", "Sensitive", "Never Extractable", "Always Sensitive", "Created At"})
 				for _, key := range keys.ObjectsList {
 					keyAttr := getCommonKeyAttributes(&key)
 					exit.OnErr(table.Append([]string{
@@ -67,6 +68,10 @@ func newListServiceKeysCmd() *cobra.Command {
 						string(keyAttr.Class),
 						string(key.ProtectionLevel),
 						string(keyAttr.State),
+						formatBool(keyAttr.Extractable),
+						formatBool(keyAttr.Sensitive),
+						formatBool(keyAttr.NeverExtractable),
+						formatBool(keyAttr.AlwaysSensitive),
 						keyAttr.CreatedAt.Format(time.DateTime),
 						// strconv.Itoa(int(*key.KeySize)),
 						// strings.Join(*key.KeyOps, ", "),
@@ -478,6 +483,10 @@ func printServiceKey(resp *types.GetServiceKeyResponse) {
 		{"Curve", curve},
 		{"Usage", usage},
 		{"Protection Level", string(resp.ProtectionLevel)},
+		{"Extractable", formatBool(keyAttr.Extractable)},
+		{"Sensitive", formatBool(keyAttr.Sensitive)},
+		{"Never Extractable", formatBool(keyAttr.NeverExtractable)},
+		{"Always Sensitive", formatBool(keyAttr.AlwaysSensitive)},
 		{"Created at", keyAttr.CreatedAt.Format(time.DateTime)},
 	}))
 	if keyAttr.ActivatedAt != nil {
@@ -605,12 +614,16 @@ func newUpdateKeyCmd() *cobra.Command {
 }
 
 type KeyAttr struct {
-	CreatedAt     time.Time
-	State         types.KeyStates
-	Class         types.ServiceKeyClassEnum
-	ActivatedAt   *time.Time
-	CompromisedAt *time.Time
-	DeactivatedAt *time.Time
+	CreatedAt        time.Time
+	State            types.KeyStates
+	Class            types.ServiceKeyClassEnum
+	ActivatedAt      *time.Time
+	CompromisedAt    *time.Time
+	DeactivatedAt    *time.Time
+	Extractable      *bool
+	Sensitive        *bool
+	NeverExtractable *bool
+	AlwaysSensitive  *bool
 }
 
 func getCommonKeyAttributes(key *types.GetServiceKeyResponse) KeyAttr {
@@ -640,6 +653,24 @@ func getCommonKeyAttributes(key *types.GetServiceKeyResponse) KeyAttr {
 		if state, ok := (*key.Attributes)["state"].(string); ok {
 			keyAttr.State = types.KeyStates(state)
 		}
+		keyAttr.Extractable = getBoolAttribute(*key.Attributes, "extractable")
+		keyAttr.Sensitive = getBoolAttribute(*key.Attributes, "sensitive")
+		keyAttr.NeverExtractable = getBoolAttribute(*key.Attributes, "never_extractable")
+		keyAttr.AlwaysSensitive = getBoolAttribute(*key.Attributes, "always_sensitive")
 	}
 	return keyAttr
+}
+
+func getBoolAttribute(attributes map[string]interface{}, name string) *bool {
+	if value, ok := attributes[name].(bool); ok {
+		return &value
+	}
+	return nil
+}
+
+func formatBool(value *bool) string {
+	if value == nil {
+		return ""
+	}
+	return strconv.FormatBool(*value)
 }
