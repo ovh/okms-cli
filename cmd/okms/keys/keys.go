@@ -167,9 +167,10 @@ func newGetServiceKeyCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "get KEY-ID",
-		Short: "Retrieve domain key metadata, or export the key material in wrapped form",
-		Args:  cobra.ExactArgs(1),
+		Use:               "get KEY-ID",
+		Short:             "Retrieve domain key metadata, or export the key material in wrapped form",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
 
@@ -213,16 +214,24 @@ func newGetServiceKeyCmd() *cobra.Command {
 	cmd.Flags().StringVar(&wrappingKeyID, "wrapping-key-id", "", "ID of the transport (wrapping) key used to encrypt the exported key material. When set, the key is exported in wrapped form instead of returning metadata")
 	cmd.Flags().StringVar(&wrappingAlgorithm, "wrapping-algorithm", string(types.RSAOAEP256), "Key wrapping algorithm [RSA-OAEP|RSA-OAEP-256]")
 	cmd.Flags().StringVar(&wrappedKeyFormat, "wrapped-key-format", string(types.JWK), "Format of the plaintext key material before wrapping [JWK|RAW|PKCS1|PKCS8]. Defaults to JWK, or omitted for a key in the HSM, which only accepts RAW")
+	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDs)
 
 	return cmd
+}
+
+// isAsymmetricKey reports whether the key material can be exported.
+func isAsymmetricKey(key *types.GetServiceKeyResponse) bool {
+	class := getCommonKeyAttributes(key).Class
+	return class == types.KEYPAIR || class == types.PUBLICKEY
 }
 
 func newExportPublicKeyCmd() *cobra.Command {
 	var format string
 	cmd := &cobra.Command{
-		Use:   "export KEY-ID",
-		Short: "Export public key material",
-		Args:  cobra.ExactArgs(1),
+		Use:               "export KEY-ID",
+		Short:             "Export public key material",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: common.CompleteKeyIDAtFiltered(0, isAsymmetricKey),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
 			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), common.GetOkmsId(), keyId, utils.PtrTo(types.Jwk)))
@@ -408,6 +417,7 @@ func newImportServiceKeyCmd() *cobra.Command {
 	cmd.Flags().Var(&protectionLevel, "protectionLevel", "Level of protection of the imported key's storage (software or HSM). Defaults to software")
 	cmd.Flags().Var(&keyType, "type", "Type of the imported key. Wrapped import only, required with --protectionLevel hsm")
 	cmd.MarkFlagsMutuallyExclusive("symmetric", "wrapping-key-id")
+	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDs)
 	return cmd
 }
 
@@ -504,10 +514,11 @@ func printServiceKey(resp *types.GetServiceKeyResponse) {
 func newDeleteKeyCmd() *cobra.Command {
 	var force bool
 	cmd := &cobra.Command{
-		Use:     "delete KEY-ID [KEY-ID...]",
-		Aliases: []string{"del"},
-		Args:    cobra.MinimumNArgs(1),
-		Short:   "Delete one or more deactivated service keys. This action is irreversible",
+		Use:               "delete KEY-ID [KEY-ID...]",
+		Aliases:           []string{"del"},
+		Args:              cobra.MinimumNArgs(1),
+		Short:             "Delete one or more deactivated service keys. This action is irreversible",
+		ValidArgsFunction: common.CompleteKeyIDArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var errs []error
 			for _, id := range args {
@@ -538,9 +549,10 @@ func newDeactivateKeyCmd() *cobra.Command {
 	//lint:ignore ST1023 for readability
 	var revocationReason = restflags.Unspecified
 	cmd := &cobra.Command{
-		Use:   "deactivate KEY-ID [KEY-ID...]",
-		Args:  cobra.MinimumNArgs(1),
-		Short: "Deactivate one or more service keys",
+		Use:               "deactivate KEY-ID [KEY-ID...]",
+		Args:              cobra.MinimumNArgs(1),
+		Short:             "Deactivate one or more service keys",
+		ValidArgsFunction: common.CompleteKeyIDArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var errs []error
 			for _, id := range args {
@@ -562,9 +574,10 @@ func newDeactivateKeyCmd() *cobra.Command {
 
 func newActivateKeyCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "activate KEY-ID [KEY-ID...]",
-		Args:  cobra.MinimumNArgs(1),
-		Short: "Activate one or more service keys",
+		Use:               "activate KEY-ID [KEY-ID...]",
+		Args:              cobra.MinimumNArgs(1),
+		Short:             "Activate one or more service keys",
+		ValidArgsFunction: common.CompleteKeyIDArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			var errs []error
 			for _, id := range args {
@@ -589,9 +602,10 @@ func newUpdateKeyCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "update KEY-ID",
-		Args:  cobra.ExactArgs(1),
-		Short: "Update a service key",
+		Use:               "update KEY-ID",
+		Args:              cobra.ExactArgs(1),
+		Short:             "Update a service key",
+		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
 			body := types.PatchServiceKeyRequest{}

@@ -19,6 +19,22 @@ func Client() *okms.Client {
 	return restClient
 }
 
+// InitClient makes sure the REST API client is initialized from the command
+// flags and the configuration file. Shell completion functions are executed
+// before the PersistentPreRun hook that normally builds the client, so they
+// must call InitClient first.
+func InitClient(cmd *cobra.Command) {
+	if restClient != nil {
+		return
+	}
+	if !config.HasEndpointConfig(cmd, "restapi") {
+		// Nothing is configured yet: do not create an empty configuration file
+		// from a completion.
+		return
+	}
+	_ = config.InitEndpoint(cmd)
+}
+
 func GetOkmsId() uuid.UUID {
 	return okmsId
 }

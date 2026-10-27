@@ -80,6 +80,10 @@ func LoadFromFile(defaultFile, customFile string) (string, error) {
 			home, _ := os.UserHomeDir()
 			fp := filepath.Join(home, ".ovh-kms", defaultFile)
 			if err = k.Load(file.Provider(fp), yaml.Parser()); os.IsNotExist(err) {
+				if completionMode {
+					// Shell completion must not have side effects.
+					return fp, nil
+				}
 				fmt.Fprintf(os.Stderr, "Creating empty config file at %s\n", fp)
 				exit.OnErr(k.Set("version", 1))
 				_ = WriteToFile(fp)

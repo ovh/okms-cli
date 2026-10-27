@@ -26,9 +26,10 @@ func newSignCmd() *cobra.Command {
 	var noProgress bool
 
 	signCmd := &cobra.Command{
-		Use:   "sign KEY-ID DATA",
-		Args:  cobra.ExactArgs(2),
-		Short: "Sign a raw data or a base64 encoded digest with the given key",
+		Use:               "sign KEY-ID DATA",
+		Args:              cobra.ExactArgs(2),
+		Short:             "Sign a raw data or a base64 encoded digest with the given key",
+		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Long: `Sign a raw data or a base64 encoded digest with the given key.
 
 When --digest is unset, DATA must be a base64 encoded digest. But if --digest is given,
@@ -61,9 +62,10 @@ func newVerifyCmd() *cobra.Command {
 	)
 
 	verifyCmd := &cobra.Command{
-		Use:   "verify KEY-ID DATA SIGNATURE",
-		Args:  cobra.ExactArgs(3),
-		Short: "Verify a signature against a key and a raw data or a base64 encoded digest",
+		Use:               "verify KEY-ID DATA SIGNATURE",
+		Args:              cobra.ExactArgs(3),
+		Short:             "Verify a signature against a key and a raw data or a base64 encoded digest",
+		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Long: `Verify a signature against a key and a raw data or a base64 encoded digest.
 
 When --digest is unset, DATA must be a base64 encoded digest. But if --digest is given,

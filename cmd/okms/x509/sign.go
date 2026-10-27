@@ -32,7 +32,8 @@ func createSignCsrCommand() *cobra.Command {
 
 The KEY-ID parameter can be left empty if the CA's Subject Key Id matches the key id UUID. Otherwise,
 KEY-ID must be the CA's private key UUID`,
-		Args: cobra.RangeArgs(2, 3),
+		Args:              cobra.RangeArgs(2, 3),
+		ValidArgsFunction: common.CompleteKeyIDAt(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			csrData := exit.OnErr2(os.ReadFile(args[0]))
 			caData := exit.OnErr2(os.ReadFile(args[1]))

@@ -11,9 +11,10 @@ import (
 
 func SetProfileCommand(defaultConfig string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set-profile [PROFILE]",
-		Short: "Switch the default profile",
-		Args:  cobra.RangeArgs(0, 1),
+		Use:               "set-profile [PROFILE]",
+		Short:             "Switch the default profile",
+		Args:              cobra.RangeArgs(0, 1),
+		ValidArgsFunction: CompleteProfiles,
 		Run: func(cmd *cobra.Command, args []string) {
 			configFile := cmd.Flag("config").Value.String()
 			file, err := LoadFromFile(defaultConfig, configFile)
