@@ -25,6 +25,7 @@ okms kmip explorer [flags]
   -c, --config string               Path to a non default configuration file
   -d, --debug                       Activate debug mode
       --endpoint string             Endpoint address to kmip
+      --insecure-skip-verify        Skip server TLS certificate verification (insecure)
       --key string                  Path to key file
       --no-ccv                      Disable kmip client correlation value
       --okmsId string               OKMS id

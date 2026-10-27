@@ -33,6 +33,7 @@ okms keys encrypt KEY-ID DATA [OUTPUT] [flags]
   -c, --config string            Path to a non default configuration file
   -d, --debug                    Activate debug mode
       --endpoint string          KMS endpoint URL
+      --insecure-skip-verify     Skip server TLS certificate verification (insecure)
       --key string               Path to key file
       --okmsId string            OKMS id
       --output text|json         The formatting style for command output. (default text)

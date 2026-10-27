@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
@@ -21,9 +22,10 @@ import (
 var k = koanf.New(".")
 
 type EndpointConfig struct {
-	Endpoint string
-	CaFile   string
-	Auth     EndpointAuth
+	Endpoint           string
+	CaFile             string
+	InsecureSkipVerify bool
+	Auth               EndpointAuth
 }
 
 func (epCfg EndpointConfig) TlsConfig(serverName string) *tls.Config {
@@ -33,6 +35,8 @@ func (epCfg EndpointConfig) TlsConfig(serverName string) *tls.Config {
 		Certificates: epCfg.Auth.TlsCertificates(),
 		ServerName:   serverName,
 		MinVersion:   tls.VersionTLS12,
+		// #nosec G402 -- Certificate verification is only skipped when explicitly requested by the user.
+		InsecureSkipVerify: epCfg.InsecureSkipVerify,
 	}
 }
 
@@ -159,13 +163,15 @@ func loadV1(command *cobra.Command, service string) EndpointConfig {
 		exit.OnErr(errors.New("Missing endpoint address parameter"))
 	}
 	caFile := GetString(svcKey, "ca", envPrefix+"_CA", command.Flags().Lookup("ca"))
+	insecureSkipVerify := GetBool(svcKey, "insecure_skip_verify", envPrefix+"_INSECURE_SKIP_VERIFY", command.Flags().Lookup("insecure-skip-verify"))
 
 	authMethod := GetString(svcKey, "auth.type", envPrefix+"_AUTH_METHOD", command.Flags().Lookup("auth-method"))
 
 	return EndpointConfig{
-		Endpoint: ep,
-		CaFile:   exit.OnErr2(utils.ExpandTilde(caFile)),
-		Auth:     buildAuthMethod(service, authMethod, command, svcKey.Cut("auth"), envPrefix),
+		Endpoint:           ep,
+		CaFile:             exit.OnErr2(utils.ExpandTilde(caFile)),
+		InsecureSkipVerify: insecureSkipVerify,
+		Auth:               buildAuthMethod(service, authMethod, command, svcKey.Cut("auth"), envPrefix),
 	}
 }
 
@@ -197,6 +203,24 @@ func GetString(k *koanf.Koanf, key, env string, flag *pflag.Flag) string {
 		return flag.DefValue
 	}
 	return ""
+}
+
+func GetBool(k *koanf.Koanf, key, env string, flag *pflag.Flag) bool {
+	if flag != nil && flag.Changed {
+		return exit.OnErr2(strconv.ParseBool(flag.Value.String()))
+	}
+	if env != "" {
+		if envVal, ok := os.LookupEnv(env); ok {
+			return exit.OnErr2(strconv.ParseBool(envVal))
+		}
+	}
+	if key != "" && k.Exists(key) {
+		return k.Bool(key)
+	}
+	if flag != nil && !flag.Changed {
+		return exit.OnErr2(strconv.ParseBool(flag.DefValue))
+	}
+	return false
 }
 
 func WriteToFile(customFile string) error {

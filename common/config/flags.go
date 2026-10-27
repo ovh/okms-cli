@@ -17,6 +17,7 @@ func SetupEndpointFlags(command *cobra.Command, service string, init func(cmd *c
 	}
 	command.PersistentFlags().String("endpoint", "", desc)
 	command.PersistentFlags().String("ca", "", "Path to CA bundle")
+	command.PersistentFlags().Bool("insecure-skip-verify", false, "Skip server TLS certificate verification (insecure)")
 	command.PersistentFlags().String("cert", "", "Path to certificate")
 	command.PersistentFlags().String("key", "", "Path to key file")
 	command.PersistentFlags().String("token", "", "Token")

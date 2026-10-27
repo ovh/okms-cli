@@ -115,6 +115,7 @@ profiles:
     restapi:
       endpoint: https://myserver.acme.com
       ca: /path/to/public-ca.crt # Optional if the CA is in system store
+      insecure_skip_verify: false # Optional, set to true to skip server certificate verification (insecure)
       auth:
         type: mtls # Optional, defaults to "mtls"
         cert: /path/to/domain/cert.pem
@@ -122,6 +123,7 @@ profiles:
     kmip:
       endpoint: myserver.acme.com:5696
       ca: /path/to/public-ca.crt # Optional if the CA is in system store
+      insecure_skip_verify: false # Optional, set to true to skip server certificate verification (insecure)
       auth:
         type: mtls # Optional, defaults to "mtls"
         cert: /path/to/domain/cert.pem
@@ -132,11 +134,13 @@ These settings can be overwritten using environment variables:
 
 - KMS_RESTAPI_ENDPOINT
 - KMS_RESTAPI_CA
+- KMS_RESTAPI_INSECURE_SKIP_VERIFY
 - KMS_RESTAPI_CERT
 - KMS_RESTAPI_KEY
 and
 - KMS_KMIP_ENDPOINT
 - KMS_KMIP_CA
+- KMS_KMIP_INSECURE_SKIP_VERIFY
 - KMS_KMIP_CERT
 - KMS_KMIP_KEY
 
@@ -144,14 +148,19 @@ and
 # REST API
 export KMS_RESTAPI_ENDPOINT=https://myserver.acme.com
 export KMS_RESTAPI_CA=/path/to/certs/ca.crt
+export KMS_RESTAPI_INSECURE_SKIP_VERIFY=false
 export KMS_RESTAPI_CERT=/path/to/certs/user.crt
 export KMS_RESTAPI_KEY=/path/to/certs/user.key
 
 # KMIP
 export KMS_KMIP_ENDPOINT=myserver.acme.com:5696
 export KMS_KMIP_CA=/path/to/certs/ca.crt
+export KMS_KMIP_INSECURE_SKIP_VERIFY=false
 export KMS_KMIP_CERT=/path/to/certs/user.crt
 export KMS_KMIP_KEY=/path/to/certs/user.key
 ```
 
 but each of them can be overwritten with CLI arguments.
+
+> **WARNING:** Setting `insecure_skip_verify` to `true` (or passing `--insecure-skip-verify`) disables server certificate
+> verification. Only use it against a test server with a self-signed certificate, never in production.
