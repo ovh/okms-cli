@@ -28,6 +28,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	keyTypeCompletions = []string{
+		strings.ToLower(string(restflags.OCTETSTREAM)),
+		strings.ToLower(string(restflags.RSA)),
+		strings.ToLower(string(restflags.ELLIPTIC_CURVE)),
+	}
+	keyUsageCompletions = []string{
+		string(restflags.SIGN),
+		string(restflags.VERIFY),
+		string(restflags.ENCRYPT),
+		string(restflags.DECRYPT),
+		string(restflags.WRAPKEY),
+		string(restflags.UNWRAPKEY),
+		string(restflags.DERIVEKEY),
+		string(restflags.DERIVEBITS),
+	}
+	wrappedKeyFormatCompletions = []string{
+		string(types.JWK),
+		string(types.RAW),
+		string(types.PKCS1),
+		string(types.PKCS8),
+	}
+	wrappingAlgorithmCompletions = []string{
+		string(types.RSAOAEP),
+		string(types.RSAOAEP256),
+	}
+)
+
 func newListServiceKeysCmd() *cobra.Command {
 	var (
 		pageSize uint32
@@ -156,51 +184,19 @@ func newAddServiceKeyCmd() *cobra.Command {
 	cmd.Flags().StringVar(&keyID, "keyId", "", "Optional key ID (UUID)")
 	cmd.Flags().BoolVar(&extractable, "extractable", false, "Whether the key and its material can be extracted (exported plain or wrapped). Defaults to false.")
 	cmd.MarkFlagsMutuallyExclusive("size", "curve")
+	_ = cmd.RegisterFlagCompletionFunc("type", cobra.FixedCompletions(keyTypeCompletions, cobra.ShellCompDirectiveNoFileComp))
+	_ = cmd.RegisterFlagCompletionFunc("usage", completeKeyUsages)
 	return cmd
 }
 
 func newGetServiceKeyCmd() *cobra.Command {
-	var (
-		wrappingKeyID     string
-		wrappingAlgorithm string
-		wrappedKeyFormat  string
-	)
-
 	cmd := &cobra.Command{
 		Use:               "get KEY-ID",
-		Short:             "Retrieve domain key metadata, or export the key material in wrapped form",
+		Short:             "Retrieve domain key metadata",
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
-
-			// When a wrapping key is provided, export the key material in wrapped (encrypted) form.
-			if wrappingKeyID != "" {
-				wrapKeyId := exit.OnErr2(uuid.Parse(wrappingKeyID))
-
-				algo := types.WrappingAlgorithms(wrappingAlgorithm)
-				if !algo.Valid() {
-					exit.OnErr(fmt.Errorf("Invalid wrapping algorithm %q, expected one of [RSA-OAEP|RSA-OAEP-256]", wrappingAlgorithm))
-				}
-				if !cmd.Flags().Changed("wrapped-key-format") {
-					// A key in the HSM is wrapped in the HSM's native encoding, so the format is omitted.
-					key := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), common.GetOkmsId(), keyId, nil))
-					if key.ProtectionLevel == types.HSM {
-						wrappedKeyFormat = ""
-					}
-				}
-				format := exit.OnErr2(parseWrappedKeyFormat(wrappedKeyFormat))
-
-				wrappedKeys := exit.OnErr2(common.Client().GetWrappedServiceKey(cmd.Context(), common.GetOkmsId(), keyId, wrapKeyId, format, algo))
-				if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
-					output.JsonPrint(wrappedKeys)
-				} else {
-					for _, k := range wrappedKeys {
-						fmt.Println(k.Ciphertext)
-					}
-				}
-				return
-			}
 
 			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), common.GetOkmsId(), keyId, nil))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
@@ -211,29 +207,120 @@ func newGetServiceKeyCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&wrappingKeyID, "wrapping-key-id", "", "ID of the transport (wrapping) key used to encrypt the exported key material. When set, the key is exported in wrapped form instead of returning metadata")
-	cmd.Flags().StringVar(&wrappingAlgorithm, "wrapping-algorithm", string(types.RSAOAEP256), "Key wrapping algorithm [RSA-OAEP|RSA-OAEP-256]")
-	cmd.Flags().StringVar(&wrappedKeyFormat, "wrapped-key-format", string(types.JWK), "Format of the plaintext key material before wrapping [JWK|RAW|PKCS1|PKCS8]. Defaults to JWK, or omitted for a key in the HSM, which only accepts RAW")
-	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDs)
-
 	return cmd
 }
 
-// isAsymmetricKey reports whether the key material can be exported.
 func isAsymmetricKey(key *types.GetServiceKeyResponse) bool {
 	class := getCommonKeyAttributes(key).Class
 	return class == types.KEYPAIR || class == types.PUBLICKEY
 }
 
-func newExportPublicKeyCmd() *cobra.Command {
-	var format string
+func isExtractableKey(key *types.GetServiceKeyResponse) bool {
+	extractable := getCommonKeyAttributes(key).Extractable
+	// Do not hide the key when the server does not expose the attribute.
+	return extractable == nil || *extractable
+}
+
+func isWrappingKey(key *types.GetServiceKeyResponse) bool {
+	if key.Operations == nil {
+		return false
+	}
+	for _, usage := range *key.Operations {
+		if usage == types.WrapKey {
+			return true
+		}
+	}
+	return false
+}
+
+func isUnwrappingKey(key *types.GetServiceKeyResponse) bool {
+	if key.Operations == nil {
+		return false
+	}
+	for _, usage := range *key.Operations {
+		if usage == types.UnwrapKey {
+			return true
+		}
+	}
+	return false
+}
+
+func completeKeyUsages(_ *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	prefix := ""
+	selected := make(map[string]struct{})
+	if i := strings.LastIndex(toComplete, ","); i >= 0 {
+		prefix = toComplete[:i+1]
+		for _, usage := range strings.Split(prefix[:len(prefix)-1], ",") {
+			selected[strings.TrimSpace(usage)] = struct{}{}
+		}
+	}
+
+	completions := make([]string, 0, len(keyUsageCompletions))
+	for _, usage := range keyUsageCompletions {
+		if _, ok := selected[usage]; ok {
+			continue
+		}
+		completions = append(completions, prefix+usage)
+	}
+	return completions, cobra.ShellCompDirectiveNoFileComp
+}
+
+func wrapExport(cmd *cobra.Command, wrappingKeyID, wrappingAlgorithm, wrappedKeyFormat string, keyId uuid.UUID) {
+	wrapKeyId := exit.OnErr2(uuid.Parse(wrappingKeyID))
+
+	algo := types.WrappingAlgorithms(wrappingAlgorithm)
+	if !algo.Valid() {
+		exit.OnErr(fmt.Errorf("Invalid wrapping algorithm %q, expected one of [RSA-OAEP|RSA-OAEP-256]", wrappingAlgorithm))
+	}
+	if !cmd.Flags().Changed("wrapped-key-format") {
+		// A key in the HSM is wrapped in the HSM's native encoding, so the format is omitted.
+		key := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), common.GetOkmsId(), keyId, nil))
+		if key.ProtectionLevel == types.HSM {
+			wrappedKeyFormat = ""
+		}
+	}
+	format := exit.OnErr2(parseWrappedKeyFormat(wrappedKeyFormat))
+
+	wrappedKeys := exit.OnErr2(common.Client().GetWrappedServiceKey(cmd.Context(), common.GetOkmsId(), keyId, wrapKeyId, format, algo))
+	if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
+		output.JsonPrint(wrappedKeys)
+	} else {
+		for _, k := range wrappedKeys {
+			fmt.Println(k.Ciphertext)
+		}
+	}
+}
+
+func newExportKeyCmd() *cobra.Command {
+	var (
+		format            string
+		wrappingKeyID     string
+		wrappingAlgorithm string
+		wrappedKeyFormat  string
+	)
 	cmd := &cobra.Command{
-		Use:               "export KEY-ID",
-		Short:             "Export public key material",
-		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: common.CompleteKeyIDAtFiltered(0, isAsymmetricKey),
+		Use:   "export KEY-ID",
+		Short: "Export public key material, or the key material in wrapped form",
+		Args:  cobra.ExactArgs(1),
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			// A public key can always be exported, while wrapped export requires
+			// the key material to be extractable.
+			filter := isAsymmetricKey
+			if wrappingKeyID != "" {
+				filter = isExtractableKey
+			}
+			return common.CompleteKeyIDAtFiltered(0, filter)(cmd, args, toComplete)
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
+
+			// When a wrapping key is provided, export the key material in wrapped (encrypted) form.
+			if wrappingKeyID != "" {
+				wrapExport(cmd, wrappingKeyID, wrappingAlgorithm, wrappedKeyFormat, keyId)
+				return
+			}
+
+			// Otherwise export the public key unwrapped
 			resp := exit.OnErr2(common.Client().GetServiceKey(cmd.Context(), common.GetOkmsId(), keyId, utils.PtrTo(types.Jwk)))
 			if resp.Keys == nil || len(*resp.Keys) == 0 {
 				exit.OnErr(errors.New("Server returned no key"))
@@ -282,6 +369,12 @@ func newExportPublicKeyCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&format, "format", "f", "pkix", "Export format [pkix|pkcs1|openssh|jwk]")
+	cmd.Flags().StringVar(&wrappingKeyID, "wrapping-key-id", "", "ID of the transport (wrapping) key used to encrypt the exported key material. When set, the key is exported in wrapped form instead of exporting its public key material")
+	cmd.Flags().StringVar(&wrappingAlgorithm, "wrapping-algorithm", string(types.RSAOAEP256), "Key wrapping algorithm [RSA-OAEP|RSA-OAEP-256]")
+	cmd.Flags().StringVar(&wrappedKeyFormat, "wrapped-key-format", string(types.JWK), "Format of the plaintext key material before wrapping [JWK|RAW|PKCS1|PKCS8]. Defaults to JWK, or omitted for a key in the HSM, which only accepts RAW")
+	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDsFiltered(isWrappingKey))
+	_ = cmd.RegisterFlagCompletionFunc("wrapped-key-format", cobra.FixedCompletions(wrappedKeyFormatCompletions, cobra.ShellCompDirectiveNoFileComp))
+	_ = cmd.RegisterFlagCompletionFunc("wrapping-algorithm", cobra.FixedCompletions(wrappingAlgorithmCompletions, cobra.ShellCompDirectiveNoFileComp))
 
 	return cmd
 }
@@ -417,7 +510,8 @@ func newImportServiceKeyCmd() *cobra.Command {
 	cmd.Flags().Var(&protectionLevel, "protectionLevel", "Level of protection of the imported key's storage (software or HSM). Defaults to software")
 	cmd.Flags().Var(&keyType, "type", "Type of the imported key. Wrapped import only, required with --protectionLevel hsm")
 	cmd.MarkFlagsMutuallyExclusive("symmetric", "wrapping-key-id")
-	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDs)
+	_ = cmd.RegisterFlagCompletionFunc("usage", completeKeyUsages)
+	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDsFiltered(isUnwrappingKey))
 	return cmd
 }
 
