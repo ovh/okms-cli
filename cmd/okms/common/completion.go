@@ -24,6 +24,14 @@ func CompleteKeyIDs(cmd *cobra.Command, args []string, toComplete string) ([]str
 	return completeKeyIDs(cmd, nil, nil)
 }
 
+// CompleteKeyIDsFiltered is like CompleteKeyIDs, but only suggests the keys
+// accepted by filter.
+func CompleteKeyIDsFiltered(filter KeyFilter) cobra.CompletionFunc {
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return completeKeyIDs(cmd, nil, filter)
+	}
+}
+
 // CompleteKeyIDArgs is like CompleteKeyIDs, but it does not suggest the key IDs
 // already given in args. It is meant for commands accepting several KEY-ID
 // arguments, such as `keys delete`.

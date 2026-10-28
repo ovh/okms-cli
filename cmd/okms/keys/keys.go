@@ -28,6 +28,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	keyTypeCompletions = []string{
+		strings.ToLower(string(restflags.OCTETSTREAM)),
+		strings.ToLower(string(restflags.RSA)),
+		strings.ToLower(string(restflags.ELLIPTIC_CURVE)),
+	}
+	keyUsageCompletions = []string{
+		string(restflags.SIGN),
+		string(restflags.VERIFY),
+		string(restflags.ENCRYPT),
+		string(restflags.DECRYPT),
+		string(restflags.WRAPKEY),
+		string(restflags.UNWRAPKEY),
+		string(restflags.DERIVEKEY),
+		string(restflags.DERIVEBITS),
+	}
+	wrappedKeyFormatCompletions = []string{
+		string(types.JWK),
+		string(types.RAW),
+		string(types.PKCS1),
+		string(types.PKCS8),
+	}
+	wrappingAlgorithmCompletions = []string{
+		string(types.RSAOAEP),
+		string(types.RSAOAEP256),
+	}
+)
+
 func newListServiceKeysCmd() *cobra.Command {
 	var (
 		pageSize uint32
@@ -156,6 +184,8 @@ func newAddServiceKeyCmd() *cobra.Command {
 	cmd.Flags().StringVar(&keyID, "keyId", "", "Optional key ID (UUID)")
 	cmd.Flags().BoolVar(&extractable, "extractable", false, "Whether the key and its material can be extracted (exported plain or wrapped). Defaults to false.")
 	cmd.MarkFlagsMutuallyExclusive("size", "curve")
+	_ = cmd.RegisterFlagCompletionFunc("type", cobra.FixedCompletions(keyTypeCompletions, cobra.ShellCompDirectiveNoFileComp))
+	_ = cmd.RegisterFlagCompletionFunc("usage", completeKeyUsages)
 	return cmd
 }
 
@@ -191,6 +221,41 @@ func isExtractableKey(key *types.GetServiceKeyResponse) bool {
 	extractable := getCommonKeyAttributes(key).Extractable
 	// Do not hide the key when the server does not expose the attribute.
 	return extractable == nil || *extractable
+}
+
+// isWrappingKey reports whether the key can be used as a transport (wrapping) key.
+func isWrappingKey(key *types.GetServiceKeyResponse) bool {
+	if key.Operations == nil {
+		return false
+	}
+	for _, usage := range *key.Operations {
+		if usage == types.WrapKey {
+			return true
+		}
+	}
+	return false
+}
+
+// completeKeyUsages suggests the key usages that are not already part of the
+// comma-separated usage list being completed.
+func completeKeyUsages(_ *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	prefix := ""
+	selected := make(map[string]struct{})
+	if i := strings.LastIndex(toComplete, ","); i >= 0 {
+		prefix = toComplete[:i+1]
+		for _, usage := range strings.Split(prefix[:len(prefix)-1], ",") {
+			selected[strings.TrimSpace(usage)] = struct{}{}
+		}
+	}
+
+	completions := make([]string, 0, len(keyUsageCompletions))
+	for _, usage := range keyUsageCompletions {
+		if _, ok := selected[usage]; ok {
+			continue
+		}
+		completions = append(completions, prefix+usage)
+	}
+	return completions, cobra.ShellCompDirectiveNoFileComp
 }
 
 func newExportKeyCmd() *cobra.Command {
@@ -295,7 +360,9 @@ func newExportKeyCmd() *cobra.Command {
 	cmd.Flags().StringVar(&wrappingKeyID, "wrapping-key-id", "", "ID of the transport (wrapping) key used to encrypt the exported key material. When set, the key is exported in wrapped form instead of exporting its public key material")
 	cmd.Flags().StringVar(&wrappingAlgorithm, "wrapping-algorithm", string(types.RSAOAEP256), "Key wrapping algorithm [RSA-OAEP|RSA-OAEP-256]")
 	cmd.Flags().StringVar(&wrappedKeyFormat, "wrapped-key-format", string(types.JWK), "Format of the plaintext key material before wrapping [JWK|RAW|PKCS1|PKCS8]. Defaults to JWK, or omitted for a key in the HSM, which only accepts RAW")
-	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDs)
+	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDsFiltered(isWrappingKey))
+	_ = cmd.RegisterFlagCompletionFunc("wrapped-key-format", cobra.FixedCompletions(wrappedKeyFormatCompletions, cobra.ShellCompDirectiveNoFileComp))
+	_ = cmd.RegisterFlagCompletionFunc("wrapping-algorithm", cobra.FixedCompletions(wrappingAlgorithmCompletions, cobra.ShellCompDirectiveNoFileComp))
 
 	return cmd
 }
@@ -431,7 +498,8 @@ func newImportServiceKeyCmd() *cobra.Command {
 	cmd.Flags().Var(&protectionLevel, "protectionLevel", "Level of protection of the imported key's storage (software or HSM). Defaults to software")
 	cmd.Flags().Var(&keyType, "type", "Type of the imported key. Wrapped import only, required with --protectionLevel hsm")
 	cmd.MarkFlagsMutuallyExclusive("symmetric", "wrapping-key-id")
-	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDs)
+	_ = cmd.RegisterFlagCompletionFunc("usage", completeKeyUsages)
+	_ = cmd.RegisterFlagCompletionFunc("wrapping-key-id", common.CompleteKeyIDsFiltered(isWrappingKey))
 	return cmd
 }
 
