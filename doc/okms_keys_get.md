@@ -1,6 +1,6 @@
 ## okms keys get
 
-Retrieve domain key metadata, or export the key material in wrapped form
+Retrieve domain key metadata
 
 ```
 okms keys get KEY-ID [flags]
@@ -9,10 +9,7 @@ okms keys get KEY-ID [flags]
 ### Options
 
 ```
-  -h, --help                        help for get
-      --wrapped-key-format string   Format of the plaintext key material before wrapping [JWK|RAW|PKCS1|PKCS8]. Defaults to JWK, or omitted for a key in the HSM, which only accepts RAW (default "JWK")
-      --wrapping-algorithm string   Key wrapping algorithm [RSA-OAEP|RSA-OAEP-256] (default "RSA-OAEP-256")
-      --wrapping-key-id string      ID of the transport (wrapping) key used to encrypt the exported key material. When set, the key is exported in wrapped form instead of returning metadata
+  -h, --help   help for get
 ```
 
 ### Options inherited from parent commands

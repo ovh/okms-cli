@@ -36,9 +36,9 @@ Manage domain keys
 * [okms keys decrypt](okms_keys_decrypt.md)	 - Decrypt data previously encrypted by Encrypt operation
 * [okms keys delete](okms_keys_delete.md)	 - Delete one or more deactivated service keys. This action is irreversible
 * [okms keys encrypt](okms_keys_encrypt.md)	 - Encrypts data, up to 4Kb in size, using provided domain key
-* [okms keys export](okms_keys_export.md)	 - Export public key material
+* [okms keys export](okms_keys_export.md)	 - Export public key material, or the key material in wrapped form
 * [okms keys generate](okms_keys_generate.md)	 - Generate a new domain service key
-* [okms keys get](okms_keys_get.md)	 - Retrieve domain key metadata, or export the key material in wrapped form
+* [okms keys get](okms_keys_get.md)	 - Retrieve domain key metadata
 * [okms keys import](okms_keys_import.md)	 - Import a symmetric, asymmetric (private or public), or wrapped key
 * [okms keys list](okms_keys_list.md)	 - List domain keys
 * [okms keys sign](okms_keys_sign.md)	 - Sign a raw data or a base64 encoded digest with the given key

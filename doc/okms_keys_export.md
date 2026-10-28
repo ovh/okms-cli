@@ -1,6 +1,6 @@
 ## okms keys export
 
-Export public key material
+Export public key material, or the key material in wrapped form
 
 ```
 okms keys export KEY-ID [flags]
@@ -9,8 +9,11 @@ okms keys export KEY-ID [flags]
 ### Options
 
 ```
-  -f, --format string   Export format [pkix|pkcs1|openssh|jwk] (default "pkix")
-  -h, --help            help for export
+  -f, --format string               Export format [pkix|pkcs1|openssh|jwk] (default "pkix")
+  -h, --help                        help for export
+      --wrapped-key-format string   Format of the plaintext key material before wrapping [JWK|RAW|PKCS1|PKCS8]. Defaults to JWK, or omitted for a key in the HSM, which only accepts RAW (default "JWK")
+      --wrapping-algorithm string   Key wrapping algorithm [RSA-OAEP|RSA-OAEP-256] (default "RSA-OAEP-256")
+      --wrapping-key-id string      ID of the transport (wrapping) key used to encrypt the exported key material. When set, the key is exported in wrapped form instead of exporting its public key material
 ```
 
 ### Options inherited from parent commands

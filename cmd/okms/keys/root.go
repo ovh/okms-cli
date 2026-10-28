@@ -18,7 +18,7 @@ func CreateCommand(cust common.CustomizeFunc) *cobra.Command {
 		newListServiceKeysCmd(),
 		newAddServiceKeyCmd(),
 		newUpdateKeyCmd(),
-		newExportPublicKeyCmd(),
+		newExportKeyCmd(),
 		newImportServiceKeyCmd(),
 		newGetServiceKeyCmd(),
 		newEncryptWithServiceKeyCmd(),

@@ -413,7 +413,7 @@ testcases:
       - name: Get wrapped key in RAW format
         type: okms-cmd
         format: text
-        args: keys get {{ .srcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format RAW
+        args: keys export {{ .srcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format RAW
         assertions:
           - result.code ShouldEqual 0
           - result.systemout ShouldNotBeEmpty
@@ -430,7 +430,7 @@ testcases:
         type: okms-cmd
         format: text
         info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
-        args: keys get {{ .srcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format JWK
+        args: keys export {{ .srcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format JWK
         assertions:
           - result.code ShouldEqual 0
           - result.systemout ShouldNotBeEmpty
@@ -456,7 +456,7 @@ testcases:
         type: okms-cmd
         format: text
         info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
-        args: keys get {{ .rsaSrcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format PKCS8
+        args: keys export {{ .rsaSrcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format PKCS8
         assertions:
           - result.code ShouldEqual 0
           - result.systemout ShouldNotBeEmpty
@@ -473,7 +473,7 @@ testcases:
         type: okms-cmd
         format: text
         info: response time is {{.result.timeseconds}} and response code is {{.result.code}} result is {{.result}}
-        args: keys get {{ .rsaSrcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format PKCS1
+        args: keys export {{ .rsaSrcKeyId }} --wrapping-key-id {{ .wrapKeyId }} --wrapped-key-format PKCS1
         assertions:
           - result.code ShouldEqual 0
           - result.systemout ShouldNotBeEmpty
@@ -509,7 +509,7 @@ testcases:
       - name: Get wrapped HSM key, format omitted
         type: okms-cmd
         format: text
-        args: keys get {{ .hsmSrcKeyId }} --wrapping-key-id {{ .hsmWrapKeyId }}
+        args: keys export {{ .hsmSrcKeyId }} --wrapping-key-id {{ .hsmWrapKeyId }}
         assertions:
           - result.code ShouldEqual 0
           - result.systemout ShouldNotBeEmpty

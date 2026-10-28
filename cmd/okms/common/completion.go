@@ -40,7 +40,8 @@ func CompleteKeyIDAt(position int) cobra.CompletionFunc {
 
 // CompleteKeyIDAtFiltered is like CompleteKeyIDAt, but only suggests the keys
 // accepted by filter. It is meant for commands that only accept a subset of the
-// keys, such as `keys export` which requires an extractable key.
+// keys, such as `keys export`, which exports public key material by default but
+// requires an extractable key to export key material in wrapped form.
 func CompleteKeyIDAtFiltered(position int, filter KeyFilter) cobra.CompletionFunc {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if len(args) != position {
