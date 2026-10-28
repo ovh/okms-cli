@@ -11,6 +11,7 @@ Manage kmip objects
   -d, --debug                       Activate debug mode
       --endpoint string             Endpoint address to kmip
   -h, --help                        help for kmip
+      --insecure-skip-verify        Skip server TLS certificate verification (insecure)
       --key string                  Path to key file
       --no-ccv                      Disable kmip client correlation value
       --okmsId string               OKMS id

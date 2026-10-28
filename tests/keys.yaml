@@ -40,6 +40,10 @@ testcases:
         assertions:
           - result.code ShouldEqual 0
           - result.systemoutjson.id ShouldEqual {{ .value.keyId }}
+          - result.systemoutjson.attributes.extractable ShouldEqual false
+          - result.systemoutjson.attributes.sensitive ShouldEqual true
+          - result.systemoutjson.attributes.never_extractable ShouldEqual true
+          - result.systemoutjson.attributes.always_sensitive ShouldEqual true
       - name: List the keys and check {{ .value.kind }}
         type: okms-cmd
         range:

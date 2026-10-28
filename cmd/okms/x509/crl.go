@@ -30,10 +30,11 @@ func CreateGenerateCrlCommand() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "crl CA REVOKE_LIST [KEY-ID]",
-		Short: "Generate a CRL with a CA whose key is stored in the KMS",
-		Long:  "Generate a Certificate Revocation List with a Certificate Authority whose key is stored in the KMS.\nThe REVOKE_LIST file is a JSON array of entries containing serialNumber (prefer a decimal string; hex must be 0x-prefixed if used), revocationDate and optionally reasonCode. See RFC3339.",
-		Args:  cobra.RangeArgs(2, 3),
+		Use:               "crl CA REVOKE_LIST [KEY-ID]",
+		Short:             "Generate a CRL with a CA whose key is stored in the KMS",
+		Long:              "Generate a Certificate Revocation List with a Certificate Authority whose key is stored in the KMS.\nThe REVOKE_LIST file is a JSON array of entries containing serialNumber (prefer a decimal string; hex must be 0x-prefixed if used), revocationDate and optionally reasonCode. See RFC3339.",
+		Args:              cobra.RangeArgs(2, 3),
+		ValidArgsFunction: common.CompleteKeyIDAt(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			caData := exit.OnErr2(os.ReadFile(args[0]))
 			caDer := exit.OnErr2(x509utils.PemDecode(caData))

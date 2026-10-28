@@ -34,9 +34,10 @@ func newGenerateDataKeyFromServiceKeyCmd() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "new KEY-ID",
-		Short: "Generate data key wrapped by domain key",
-		Args:  cobra.ExactArgs(1),
+		Use:               "new KEY-ID",
+		Short:             "Generate data key wrapped by domain key",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
 			plaintext, encrypted := exit.OnErr3(common.Client().GenerateDataKey(cmd.Context(), common.GetOkmsId(), keyId, name, keySize))
@@ -63,7 +64,8 @@ func newDecryptDataKeyCmd() *cobra.Command {
 		Long: `Decrypt data key encrypted by domain key.
 
 DATA-KEY can be either plain text, a '-' to read from stdin, or a filename prefixed with @`,
-		Args: cobra.ExactArgs(2),
+		Args:              cobra.ExactArgs(2),
+		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
 			plaintext := exit.OnErr2(common.Client().DecryptDataKey(cmd.Context(), common.GetOkmsId(), keyId, flagsmgmt.StringFromArg(args[1], 8192)))

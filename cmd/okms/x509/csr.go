@@ -25,9 +25,10 @@ func createGenerateCsrCommand() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "csr KEY-ID",
-		Short: "Generate a CSR signed with the given private key",
-		Args:  cobra.ExactArgs(1),
+		Use:               "csr KEY-ID",
+		Short:             "Generate a CSR signed with the given private key",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
 			signer := exit.OnErr2(common.Client().NewSigner(cmd.Context(), common.GetOkmsId(), keyId))

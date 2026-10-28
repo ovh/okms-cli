@@ -28,9 +28,10 @@ func createGenerateCertCommand() *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "cert KEY-ID",
-		Short: "Generate a self-signed certificate, signed with the key identified by KEY-ID",
-		Args:  cobra.ExactArgs(1),
+		Use:               "cert KEY-ID",
+		Short:             "Generate a self-signed certificate, signed with the key identified by KEY-ID",
+		Args:              cobra.ExactArgs(1),
+		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
 			signer := exit.OnErr2(common.Client().NewSigner(cmd.Context(), common.GetOkmsId(), keyId))

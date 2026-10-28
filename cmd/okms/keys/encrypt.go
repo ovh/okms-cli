@@ -31,7 +31,8 @@ func newEncryptWithServiceKeyCmd() *cobra.Command {
 DATA can be either plain text, a '-' to read from stdin, or a filename prefixed with @.
 OUTPUT can be either a filepath, or a "-" for stdout. If not set, output is stdout.
 `,
-		Args: cobra.RangeArgs(2, 3),
+		Args:              cobra.RangeArgs(2, 3),
+		ValidArgsFunction: common.CompleteKeyIDAt(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			keyId := exit.OnErr2(uuid.Parse(args[0]))
 			out := "-"

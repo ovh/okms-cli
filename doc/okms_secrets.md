@@ -11,6 +11,7 @@ Managed secrets
   -d, --debug                    Activate debug mode
       --endpoint string          KMS endpoint URL
   -h, --help                     help for secrets
+      --insecure-skip-verify     Skip server TLS certificate verification (insecure)
       --key string               Path to key file
       --okmsId string            OKMS id
       --output text|json         The formatting style for command output. (default text)
