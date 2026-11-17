@@ -45,6 +45,7 @@ func createSymmetricKey() *cobra.Command {
 	extractable := cmd.Flags().Bool("extractable", true, "Set the extractable attribute")
 	description := cmd.Flags().String("description", "", "Set the description attribute")
 	comment := cmd.Flags().String("comment", "", "Set the comment attribute")
+	usageLimits := setUsageLimitsFlags(cmd)
 
 	_ = cmd.MarkFlagRequired("alg")
 	_ = cmd.MarkFlagRequired("size")
@@ -67,6 +68,7 @@ func createSymmetricKey() *cobra.Command {
 		if *comment != "" {
 			req = req.WithAttribute(kmip.AttributeNameComment, *comment)
 		}
+		req = withUsageLimits(cmd, usageLimits, req)
 
 		resp := exit.OnErr2(req.ExecContext(cmd.Context()))
 
@@ -107,6 +109,7 @@ func createKeyPair() *cobra.Command {
 	privateExtractable := cmd.Flags().Bool("private-extractable", true, "Set the extractable attribute on the private key")
 	description := cmd.Flags().String("description", "", "Set the description attribute on both keys")
 	comment := cmd.Flags().String("comment", "", "Set the comment attribute on both keys")
+	usageLimits := setUsageLimitsFlags(cmd)
 
 	_ = cmd.MarkFlagRequired("alg")
 	cmd.MarkFlagsMutuallyExclusive("curve", "size")
@@ -144,6 +147,7 @@ func createKeyPair() *cobra.Command {
 		if *comment != "" {
 			req = req.Common().WithAttribute(kmip.AttributeNameComment, *comment)
 		}
+		req = withUsageLimits(cmd, usageLimits, req.Common())
 		resp := exit.OnErr2(req.ExecContext(cmd.Context()))
 
 		if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
@@ -164,4 +168,35 @@ func createKeyPair() *cobra.Command {
 	}
 
 	return cmd
+}
+
+type usageLimitsFlags struct {
+	total int64
+	unit  kmipflags.UsageLimitsUnit
+}
+
+func setUsageLimitsFlags(cmd *cobra.Command) *usageLimitsFlags {
+	f := &usageLimitsFlags{unit: kmipflags.UsageLimitsObject}
+	cmd.Flags().Int64Var(&f.total, "usage-limit", 0, "Set the usage limits attribute: total amount of usage allowed for the key, in --usage-limit-unit")
+	cmd.Flags().Var(&f.unit, "usage-limit-unit", "Unit of --usage-limit: number of cryptographic operations (Object) or of processed bytes (Byte)")
+	return f
+}
+
+// withUsageLimits adds the Usage Limits attribute to the request when --usage-limit is set.
+// The remaining usage count starts at the total.
+func withUsageLimits[T interface {
+	WithAttribute(kmip.AttributeName, any) T
+}](cmd *cobra.Command, f *usageLimitsFlags, req T) T {
+	if !cmd.Flags().Changed("usage-limit") {
+		return req
+	}
+	if f.total <= 0 {
+		exit.OnErr(errors.New("--usage-limit must be greater than 0"))
+	}
+	count := f.total
+	return req.WithAttribute(kmip.AttributeNameUsageLimits, kmip.UsageLimits{
+		UsageLimitsTotal: f.total,
+		UsageLimitsCount: &count,
+		UsageLimitsUnit:  kmip.UsageLimitsUnit(f.unit),
+	})
 }

@@ -5,33 +5,35 @@ Manage an object's attributes
 ### Options
 
 ```
-  -h, --help   help for attributes
+  -h, --help[=true|false]   help for attributes
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --auth-method mtls|token      Authentication method to use
-      --ca string                   Path to CA bundle
-      --cert string                 Path to certificate
-  -c, --config string               Path to a non default configuration file
-  -d, --debug                       Activate debug mode
-      --endpoint string             Endpoint address to kmip
-      --insecure-skip-verify        Skip server TLS certificate verification (insecure)
-      --key string                  Path to key file
-      --no-ccv                      Disable kmip client correlation value
-      --okmsId string               OKMS id
-      --output text|json            The formatting style for command output. (default text)
-      --profile string              Name of the profile (default "default")
-      --timeout duration            Timeout duration for KMIP requests
-      --tls12-ciphers stringArray   List of TLS 1.2 ciphers to use
-      --token string                Token
+      --auth-method mtls|token              Authentication method to use
+      --ca string                           Path to CA bundle
+      --cert string                         Path to certificate
+  -c, --config string                       Path to a non default configuration file
+  -d, --debug[=true|false]                  Activate debug mode
+      --endpoint string                     Endpoint address to kmip
+      --insecure-skip-verify[=true|false]   Skip server TLS certificate verification (insecure)
+      --key string                          Path to key file
+      --no-ccv[=true|false]                 Disable kmip client correlation value
+      --okmsId string                       OKMS id
+      --output text|json                    The formatting style for command output. (default text)
+      --profile string                      Name of the profile (default "default")
+      --timeout duration                    Timeout duration for KMIP requests
+      --tls12-ciphers stringArray           List of TLS 1.2 ciphers to use
+      --token string                        Token
 ```
 
 ### SEE ALSO
 
 * [okms kmip](okms_kmip.md)	 - Manage kmip objects
+* [okms kmip attributes add](okms_kmip_attributes_add.md)	 - Add a new attribute to an object
 * [okms kmip attributes delete](okms_kmip_attributes_delete.md)	 - Delete an existing attribute of an object
 * [okms kmip attributes get](okms_kmip_attributes_get.md)	 - Get the attributes of an object
+* [okms kmip attributes list](okms_kmip_attributes_list.md)	 - List the names of the attributes of an object
 * [okms kmip attributes modify](okms_kmip_attributes_modify.md)	 - Modify an existing attribute of an object
 

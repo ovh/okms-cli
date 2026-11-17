@@ -232,6 +232,373 @@ testcases:
           - result.systemout ShouldContainSubstring {{.Create-keys.aesKeyId}}
           - result.systemout ShouldContainSubstring Active
 
+  - name: List and add attributes
+    steps:
+      - name: List attributes of AES key
+        type: okms-cmd
+        args: kmip attributes list {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldEqual {{.Create-keys.aesKeyId}}
+          - result.systemoutjson.AttributeName ShouldContain "Cryptographic Algorithm"
+          - result.systemoutjson.AttributeName ShouldNotContain "Description"
+      - name: List attributes of AES key as text
+        type: okms-cmd
+        args: kmip attr ls {{.Create-keys.aesKeyId}}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldContainSubstring "Cryptographic Algorithm"
+      - name: Add a description to AES key
+        type: okms-cmd
+        args: kmip attributes add {{.Create-keys.aesKeyId}} Description "okms-cli kmip tests"
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldEqual {{.Create-keys.aesKeyId}}
+          - result.systemoutjson.Attribute.AttributeName ShouldEqual Description
+      - name: Added attribute is listed
+        type: okms-cmd
+        args: kmip attributes list {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.AttributeName ShouldContain "Description"
+      - name: Added attribute value is returned
+        type: okms-cmd
+        args: kmip attributes get {{.Create-keys.aesKeyId}}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldContainSubstring "okms-cli kmip tests"
+      - name: Adding an already set single instance attribute should fail
+        type: okms-cmd
+        args: kmip attributes add {{.Create-keys.aesKeyId}} Description "okms-cli kmip tests again"
+        assertions:
+          - result.code ShouldEqual 1
+
+  - name: Obtain lease
+    steps:
+      - name: Obtain lease of AES key
+        type: okms-cmd
+        args: kmip obtain-lease {{.Create-keys.aesKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldEqual {{.Create-keys.aesKeyId}}
+          - result.systemoutjson ShouldContainKey LeaseTime
+      - name: Obtain lease of AES key as text
+        type: okms-cmd
+        args: kmip lease {{.Create-keys.aesKeyId}}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldContainSubstring "Lease time:"
+
+  - name: Archive then Recover
+    steps:
+      - name: Create an AES 256 key to archive
+        type: okms-cmd
+        args: kmip create symmetric --alg AES --size 256
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          archivedKeyId:
+            from: result.systemoutjson.UniqueIdentifier
+      - name: Archive key
+        type: okms-cmd
+        args: kmip archive {{.archivedKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldEqual {{.archivedKeyId}}
+      - name: Archive an archived key should fail
+        type: okms-cmd
+        args: kmip archive {{.archivedKeyId}}
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Get an archived key should fail
+        type: okms-cmd
+        args: kmip get {{.archivedKeyId}}
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Archived key is not located
+        type: okms-cmd
+        args: kmip locate
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldNotContain {{.archivedKeyId}}
+      - name: Recover key
+        type: okms-cmd
+        args: kmip recover {{.archivedKeyId}}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldContainSubstring "Recovered object {{.archivedKeyId}}"
+      - name: Get a recovered key
+        type: okms-cmd
+        args: kmip get {{.archivedKeyId}}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldEqual {{.archivedKeyId}}
+
+  - name: Encrypt then Decrypt with AES
+    steps:
+      - name: Create an AES 256 encryption key
+        type: okms-cmd
+        args: kmip create symmetric --alg AES --size 256 --usage encrypt,decrypt
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          keyId:
+            from: result.systemoutjson.UniqueIdentifier
+      - name: Encrypt with a PreActive key should fail
+        type: okms-cmd
+        args: kmip encrypt {{.keyId}} "okms-cli kmip tests" --mode GCM
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Activate AES encryption key
+        type: okms-cmd
+        args: kmip activate {{.keyId}}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Encrypt with GCM
+        type: okms-cmd
+        args: kmip encrypt {{.keyId}} "okms-cli kmip tests" --mode GCM --aad "okms-cli context"
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldEqual {{.keyId}}
+          - result.systemoutjson.Data ShouldNotBeEmpty
+          - result.systemoutjson.IVCounterNonce ShouldNotBeEmpty
+          - result.systemoutjson.AuthenticatedEncryptionTag ShouldNotBeEmpty
+        vars:
+          gcmData:
+            from: result.systemoutjson.Data
+          gcmIv:
+            from: result.systemoutjson.IVCounterNonce
+          gcmTag:
+            from: result.systemoutjson.AuthenticatedEncryptionTag
+      - name: Decrypt with GCM
+        type: okms-cmd
+        args: kmip decrypt {{.keyId}} {{.gcmData}} --mode GCM --iv {{.gcmIv}} --tag {{.gcmTag}} --aad "okms-cli context"
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "okms-cli kmip tests"
+      - name: Decrypt with GCM and another AAD should fail
+        type: okms-cmd
+        args: kmip decrypt {{.keyId}} {{.gcmData}} --mode GCM --iv {{.gcmIv}} --tag {{.gcmTag}} --aad "another context"
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Encrypt with CBC as text
+        type: okms-cmd
+        args: kmip encrypt {{.keyId}} "okms-cli kmip tests" --mode CBC --padding PKCS5
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldContainSubstring "Data:"
+          - result.systemout ShouldContainSubstring "IV:"
+      - name: Encrypt with CBC
+        type: okms-cmd
+        args: kmip encrypt {{.keyId}} "okms-cli kmip tests" --mode CBC --padding PKCS5
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.Data ShouldNotBeEmpty
+          - result.systemoutjson.IVCounterNonce ShouldNotBeEmpty
+        vars:
+          cbcData:
+            from: result.systemoutjson.Data
+          cbcIv:
+            from: result.systemoutjson.IVCounterNonce
+      - name: Decrypt with CBC
+        type: okms-cmd
+        args: kmip decrypt {{.keyId}} {{.cbcData}} --mode CBC --padding PKCS5 --iv {{.cbcIv}}
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "okms-cli kmip tests"
+      - name: Revoke AES encryption key
+        type: okms-cmd
+        args: kmip revoke --force {{.keyId}}
+        assertions:
+          - result.code ShouldEqual 0
+
+  - name: Encrypt then Decrypt with RSA
+    steps:
+      - name: Create an RSA 2048 encryption key pair
+        type: okms-cmd
+        args: kmip create key-pair --alg RSA --size 2048 --public-usage encrypt --private-usage decrypt
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          pubKeyId:
+            from: result.systemoutjson.PublicKeyUniqueIdentifier
+          privKeyId:
+            from: result.systemoutjson.PrivateKeyUniqueIdentifier
+      - name: Activate {{ .value }}
+        type: okms-cmd
+        range:
+          - "{{.pubKeyId}}"
+          - "{{.privKeyId}}"
+        args: kmip activate {{ .value }}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Encrypt with the public key and OAEP
+        type: okms-cmd
+        args: kmip encrypt {{.pubKeyId}} "okms-cli kmip tests" --padding OAEP --hash SHA256
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.Data ShouldNotBeEmpty
+        vars:
+          oaepData:
+            from: result.systemoutjson.Data
+      - name: Decrypt with the private key and OAEP
+        type: okms-cmd
+        args: kmip decrypt {{.privKeyId}} {{.oaepData}} --padding OAEP --hash SHA256
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "okms-cli kmip tests"
+      - name: Revoke {{ .value }}
+        type: okms-cmd
+        range:
+          - "{{.pubKeyId}}"
+          - "{{.privKeyId}}"
+        args: kmip revoke --force {{ .value }}
+        assertions:
+          - result.code ShouldEqual 0
+
+  - name: Sign then Verify
+    steps:
+      - name: Sign with the ECDSA private key
+        type: okms-cmd
+        args: kmip sign {{.Create-keys.privEcdsaKeyId}} "okms-cli kmip tests" --alg ES256
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldNotBeEmpty
+        vars:
+          ecdsaSignature:
+            from: result.systemout
+      - name: Verify with the ECDSA public key
+        type: okms-cmd
+        args: kmip verify {{.Create-keys.pubEcdsaKeyId}} "okms-cli kmip tests" {{.ecdsaSignature}} --alg ES256
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "Signature is valid"
+      - name: Verify other data should fail
+        type: okms-cmd
+        args: kmip verify {{.Create-keys.pubEcdsaKeyId}} "okms-cli kmip tests tampered" {{.ecdsaSignature}} --alg ES256
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Digest the data
+        script: printf '%s' "okms-cli kmip tests" | openssl dgst -sha256 -binary | base64
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          digest:
+            from: result.systemout
+      - name: Sign a digest with the ECDSA private key
+        type: okms-cmd
+        args: kmip sign {{.Create-keys.privEcdsaKeyId}} {{.digest}} --alg ES256 --digested
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.SignatureData ShouldNotBeEmpty
+        vars:
+          digestSignature:
+            from: result.systemoutjson.SignatureData
+      - name: Verify the signature of the digest against the data
+        type: okms-cmd
+        args: kmip verify {{.Create-keys.pubEcdsaKeyId}} "okms-cli kmip tests" {{.digestSignature}} --alg ES256
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.ValidityIndicator ShouldEqual Valid
+      - name: Sign with an algorithm not matching the key should fail
+        type: okms-cmd
+        args: kmip sign {{.Create-keys.privEcdsaKeyId}} "okms-cli kmip tests" --alg RS256
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Sign with the RSA private key using PKCS1 v1.5
+        type: okms-cmd
+        args: kmip sign {{.Create-keys.privRsaKeyId}} "okms-cli kmip tests" --alg RS256
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.SignatureData ShouldNotBeEmpty
+        vars:
+          rsaSignature:
+            from: result.systemoutjson.SignatureData
+      - name: Verify with the RSA public key using PKCS1 v1.5
+        type: okms-cmd
+        args: kmip verify {{.Create-keys.pubRsaKeyId}} "okms-cli kmip tests" {{.rsaSignature}} --alg RS256
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "Signature is valid"
+      - name: Sign with the RSA private key using PSS
+        type: okms-cmd
+        args: kmip sign {{.Create-keys.privRsaKeyId}} "okms-cli kmip tests" --alg PS384
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldNotBeEmpty
+        vars:
+          pssSignature:
+            from: result.systemout
+      - name: Verify with the RSA public key using PSS
+        type: okms-cmd
+        args: kmip verify {{.Create-keys.pubRsaKeyId}} "okms-cli kmip tests" {{.pssSignature}} --alg PS384
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "Signature is valid"
+
+  - name: Get usage allocation
+    steps:
+      - name: Create an AES 256 key with usage limits
+        type: okms-cmd
+        args: kmip create symmetric --alg AES --size 256 --usage-limit 10 --usage-limit-unit Object
+        assertions:
+          - result.code ShouldEqual 0
+        vars:
+          keyId:
+            from: result.systemoutjson.UniqueIdentifier
+      - name: Usage limits are set
+        type: okms-cmd
+        args: kmip attributes list {{.keyId}}
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.AttributeName ShouldContain "Usage Limits"
+      - name: Activate key with usage limits
+        type: okms-cmd
+        args: kmip activate {{.keyId}}
+        assertions:
+          - result.code ShouldEqual 0
+      - name: Get usage allocation
+        type: okms-cmd
+        args: kmip get-usage-allocation {{.keyId}} --count 4
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemoutjson.UniqueIdentifier ShouldEqual {{.keyId}}
+      - name: Get remaining usage allocation
+        type: okms-cmd
+        args: kmip usage-allocation {{.keyId}} --count 6
+        format: text
+        assertions:
+          - result.code ShouldEqual 0
+          - result.systemout ShouldEqual "Usage allocated for object {{.keyId}}"
+      - name: Get usage allocation beyond the limits should fail
+        type: okms-cmd
+        args: kmip get-usage-allocation {{.keyId}} --count 1
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Get usage allocation of a key without usage limits should fail
+        type: okms-cmd
+        args: kmip get-usage-allocation {{.Create-keys.aesKeyId}} --count 1
+        assertions:
+          - result.code ShouldEqual 1
+      - name: Revoke key with usage limits
+        type: okms-cmd
+        args: kmip revoke --force {{.keyId}}
+        assertions:
+          - result.code ShouldEqual 0
+
   - name: Revoke kmip object
     steps:
       - name: Revoke activated AES key
