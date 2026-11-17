@@ -12,32 +12,34 @@ okms kmip create symmetric [flags]
       --alg AES|TDES|SKIPJACK                                                           Key algorithm
       --comment string                                                                  Set the comment attribute
       --description string                                                              Set the description attribute
-      --extractable                                                                     Set the extractable attribute (default true)
-  -h, --help                                                                            help for symmetric
+      --extractable[=true|false]                                                        Set the extractable attribute (default true)
+  -h, --help[=true|false]                                                               help for symmetric
       --name string                                                                     Optional key name
-      --sensitive                                                                       Set sensitive attribute
+      --sensitive[=true|false]                                                          Set sensitive attribute
       --size int                                                                        Key bit length
       --usage Combination of: Sign|Verify|Encrypt|Decrypt|WrapKey|UnwrapKey|DeriveKey   Cryptographic usage (default Encrypt,Decrypt)
+      --usage-limit int                                                                 Set the usage limits attribute: total amount of usage allowed for the key, in --usage-limit-unit
+      --usage-limit-unit Object|Byte                                                    Unit of --usage-limit: number of cryptographic operations (Object) or of processed bytes (Byte) (default Object)
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --auth-method mtls|token      Authentication method to use
-      --ca string                   Path to CA bundle
-      --cert string                 Path to certificate
-  -c, --config string               Path to a non default configuration file
-  -d, --debug                       Activate debug mode
-      --endpoint string             Endpoint address to kmip
-      --insecure-skip-verify        Skip server TLS certificate verification (insecure)
-      --key string                  Path to key file
-      --no-ccv                      Disable kmip client correlation value
-      --okmsId string               OKMS id
-      --output text|json            The formatting style for command output. (default text)
-      --profile string              Name of the profile (default "default")
-      --timeout duration            Timeout duration for KMIP requests
-      --tls12-ciphers stringArray   List of TLS 1.2 ciphers to use
-      --token string                Token
+      --auth-method mtls|token              Authentication method to use
+      --ca string                           Path to CA bundle
+      --cert string                         Path to certificate
+  -c, --config string                       Path to a non default configuration file
+  -d, --debug[=true|false]                  Activate debug mode
+      --endpoint string                     Endpoint address to kmip
+      --insecure-skip-verify[=true|false]   Skip server TLS certificate verification (insecure)
+      --key string                          Path to key file
+      --no-ccv[=true|false]                 Disable kmip client correlation value
+      --okmsId string                       OKMS id
+      --output text|json                    The formatting style for command output. (default text)
+      --profile string                      Name of the profile (default "default")
+      --timeout duration                    Timeout duration for KMIP requests
+      --tls12-ciphers stringArray           List of TLS 1.2 ciphers to use
+      --token string                        Token
 ```
 
 ### SEE ALSO

@@ -75,6 +75,14 @@ func NewCommand(cust CustomizeFunc) *cobra.Command {
 		getCommand(),
 		registerCommand(),
 		rekeyCommand(),
+		archiveCommand(),
+		recoverCommand(),
+		obtainLeaseCommand(),
+		getUsageAllocationCommand(),
+		encryptCommand(),
+		decryptCommand(),
+		signCommand(),
+		verifyCommand(),
 		explorerCommand(),
 	)
 

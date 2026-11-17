@@ -13,34 +13,36 @@ okms kmip create key-pair [flags]
       --comment string                                                                          Set the comment attribute on both keys
       --curve P-256|P-384|P-521                                                                 Elliptic curve for EC keys
       --description string                                                                      Set the description attribute on both keys
-  -h, --help                                                                                    help for key-pair
-      --private-extractable                                                                     Set the extractable attribute on the private key (default true)
+  -h, --help[=true|false]                                                                       help for key-pair
+      --private-extractable[=true|false]                                                        Set the extractable attribute on the private key (default true)
       --private-name string                                                                     Optional private key name
-      --private-sensitive                                                                       Set sensitive attribute on the private key
+      --private-sensitive[=true|false]                                                          Set sensitive attribute on the private key
       --private-usage Combination of: Sign|Verify|Encrypt|Decrypt|WrapKey|UnwrapKey|DeriveKey   Private key allowed usage (default Sign)
       --public-name string                                                                      Optional public key name
       --public-usage Combination of: Sign|Verify|Encrypt|Decrypt|WrapKey|UnwrapKey|DeriveKey    Public key allowed usage (default Verify)
       --size int                                                                                Modulus  bit length of the RSA key-pair to generate
+      --usage-limit int                                                                         Set the usage limits attribute: total amount of usage allowed for the key, in --usage-limit-unit
+      --usage-limit-unit Object|Byte                                                            Unit of --usage-limit: number of cryptographic operations (Object) or of processed bytes (Byte) (default Object)
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --auth-method mtls|token      Authentication method to use
-      --ca string                   Path to CA bundle
-      --cert string                 Path to certificate
-  -c, --config string               Path to a non default configuration file
-  -d, --debug                       Activate debug mode
-      --endpoint string             Endpoint address to kmip
-      --insecure-skip-verify        Skip server TLS certificate verification (insecure)
-      --key string                  Path to key file
-      --no-ccv                      Disable kmip client correlation value
-      --okmsId string               OKMS id
-      --output text|json            The formatting style for command output. (default text)
-      --profile string              Name of the profile (default "default")
-      --timeout duration            Timeout duration for KMIP requests
-      --tls12-ciphers stringArray   List of TLS 1.2 ciphers to use
-      --token string                Token
+      --auth-method mtls|token              Authentication method to use
+      --ca string                           Path to CA bundle
+      --cert string                         Path to certificate
+  -c, --config string                       Path to a non default configuration file
+  -d, --debug[=true|false]                  Activate debug mode
+      --endpoint string                     Endpoint address to kmip
+      --insecure-skip-verify[=true|false]   Skip server TLS certificate verification (insecure)
+      --key string                          Path to key file
+      --no-ccv[=true|false]                 Disable kmip client correlation value
+      --okmsId string                       OKMS id
+      --output text|json                    The formatting style for command output. (default text)
+      --profile string                      Name of the profile (default "default")
+      --timeout duration                    Timeout duration for KMIP requests
+      --tls12-ciphers stringArray           List of TLS 1.2 ciphers to use
+      --token string                        Token
 ```
 
 ### SEE ALSO

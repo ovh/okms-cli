@@ -112,18 +112,7 @@ Therefore, only attributes with a 'Text String' encoding are supported with this
 		Run: func(cmd *cobra.Command, args []string) {
 			id := args[0]
 			attrName := kmip.AttributeName(args[1])
-			rawValue := args[2]
-
-			var value any
-			switch attrName {
-			case kmip.AttributeNameName:
-				value = kmip.Name{
-					NameValue: rawValue,
-					NameType:  kmip.NameTypeUninterpretedTextString,
-				}
-			default:
-				value = rawValue
-			}
+			value := textAttributeValue(attrName, args[2])
 
 			resp := exit.OnErr2(kmipClient.ModifyAttribute(id, attrName, value).ExecContext(cmd.Context()))
 			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
@@ -136,6 +125,69 @@ Therefore, only attributes with a 'Text String' encoding are supported with this
 	return cmd
 }
 
+func addAttributeCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "add ID ATTRIBUTE_NAME VALUE",
+		Short: "Add a new attribute to an object",
+		Long: `Add a new attribute to a KMIP managed object.
+
+For the "Name" attribute, VALUE is passed as an 'Uninterpreted Text String'.
+For all other standard attributes, VALUE is passed as a plain 'Text String'.
+Therefore, only attributes with a 'Text String' encoding are supported with this command.`,
+		Args: cobra.ExactArgs(3),
+		Run: func(cmd *cobra.Command, args []string) {
+			id := args[0]
+			attrName := kmip.AttributeName(args[1])
+			value := textAttributeValue(attrName, args[2])
+
+			req := kmipClient.AddAttribute(id, attrName, value)
+			if idx, err := cmd.Flags().GetInt32("index"); err == nil && cmd.Flags().Changed("index") {
+				req = req.WithIndex(idx)
+			}
+
+			resp := exit.OnErr2(req.ExecContext(cmd.Context()))
+			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
+				output.JsonPrint(resp)
+				return
+			}
+			printAttributeTable([]kmip.Attribute{resp.Attribute})
+		},
+	}
+	cmd.Flags().Int32("index", 0, "Index of the attribute instance to add (default 0)")
+	return cmd
+}
+
+func listAttributesCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:     "list ID",
+		Aliases: []string{"ls"},
+		Short:   "List the names of the attributes of an object",
+		Args:    cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			resp := exit.OnErr2(kmipClient.GetAttributeList(args[0]).ExecContext(cmd.Context()))
+			if cmd.Flag("output").Value.String() == string(flagsmgmt.JSON_OUTPUT_FORMAT) {
+				output.JsonPrint(resp)
+				return
+			}
+			for _, name := range resp.AttributeName {
+				fmt.Println(name)
+			}
+		},
+	}
+}
+
+// textAttributeValue converts the VALUE argument of the attributes add and modify commands
+// into an attribute value: a Name for the "Name" attribute, a text string otherwise.
+func textAttributeValue(name kmip.AttributeName, rawValue string) any {
+	if name == kmip.AttributeNameName {
+		return kmip.Name{
+			NameValue: rawValue,
+			NameType:  kmip.NameTypeUninterpretedTextString,
+		}
+	}
+	return rawValue
+}
+
 func attributesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "attributes",
@@ -144,6 +196,8 @@ func attributesCommand() *cobra.Command {
 	}
 	cmd.AddCommand(
 		getAttributesCommand(),
+		listAttributesCommand(),
+		addAttributeCommand(),
 		modifyAttributeCommand(),
 		deleteAttributeCommand(),
 	)
